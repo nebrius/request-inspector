@@ -1,10 +1,10 @@
-const http = require('http');
-const fs = require('fs');
-const express = require('express');
-
 const inspector = require('../request-inspector-node/');
+inspector.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
 
-inspector.init((err) => {
+  const http = require('http');
+  const fs = require('fs');
+  const express = require('express');
+
   if (err) {
     console.error(err);
     process.exit(-1);
@@ -39,4 +39,5 @@ inspector.init((err) => {
   request(1);
   request(2);
   request(3);
+
 });

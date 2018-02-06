@@ -1,4 +1,3 @@
-"use strict";
 /*
 MIT License
 
@@ -22,35 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-Object.defineProperty(exports, "__esModule", { value: true });
-const express = require("express");
-const body_parser_1 = require("body-parser");
-const DEFAULT_PORT = 7176;
-const events = [];
-function start({ port = DEFAULT_PORT }, cb) {
-    const app = express();
-    app.use(body_parser_1.json());
-    app.get('/', (req, res) => {
-        res.send('Hello World!');
-    });
-    app.get('/api/events', (req, res) => {
-        res.send(events);
-    });
-    app.post('/api/events', (req, res) => {
-        const event = req.body;
-        console.log(`Receive event ${event.id}`);
-        for (let i = 0; i < events.length; i++) {
-            if (event.id === events[i].id) {
-                events[i] = event;
-                res.send('OK');
-                return;
-            }
-        }
-        events.push(req.body);
-        res.send('OK');
-    });
-    app.listen(port, cb);
-    return app;
+
+export interface IMeasurementEvent {
+  id: string;
+  requestId: string;
+  name: string;
+  start: number;
+  end: number;
+  details: { [ key: string ]: any };
 }
-exports.start = start;
-//# sourceMappingURL=index.js.map
+
+export const EVENT_NAMES = {
+  NODE_HTTP_SERVER_REQUEST: 'node:http.Server#on-request'
+};

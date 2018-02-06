@@ -22,8 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { getContextPath, registerRequest } from '../stack';
+import { registerRequest } from '../stack';
 import { begin, end } from '../event';
+import { EVENT_NAMES } from '../common/common';
 
 import http = require('http');
 
@@ -31,11 +32,10 @@ export function init(cb: (err: Error | undefined) => void): void {
   const oldCreateServer = http.createServer;
   http.createServer = function createServer(...args: any[]): http.Server {
     const server = oldCreateServer.apply(this, args);
-    server.on('request', (req: http.ClientRequest, res: http.ServerResponse) => {
+    server.on('request', (req: http.IncomingMessage, res: http.ServerResponse) => {
       registerRequest(req);
-      const measurementEvent = begin('http-server-on:request');
-      console.log('request', getContextPath());
-      res.on('close', () => end(measurementEvent));
+      const measurementEvent = begin(EVENT_NAMES.NODE_HTTP_SERVER_REQUEST);
+      res.on('finish', () => end(measurementEvent));
     });
     return server;
   };

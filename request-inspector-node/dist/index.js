@@ -26,10 +26,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const stack_1 = require("./stack");
 const http_1 = require("./monitors/http");
 const async_1 = require("async");
+const messaging_1 = require("./messaging");
 var event_1 = require("./event");
+exports.isInRequestContext = event_1.isInRequestContext;
 exports.begin = event_1.begin;
 exports.end = event_1.end;
-function init(cb) {
+function init({ serverHostname, serverPort }, cb) {
+    messaging_1.setServerConnection(serverHostname, serverPort);
     async_1.parallel([
         stack_1.init,
         http_1.init

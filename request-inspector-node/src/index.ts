@@ -25,10 +25,18 @@ SOFTWARE.
 import { init as stackInit } from './stack';
 import { init as httpMonitorInit } from './monitors/http';
 import { parallel } from 'async';
+import { setServerConnection } from './messaging';
 
-export { begin, end, IMeasurementEvent } from './event';
+export { IMeasurementEvent } from './common/common';
+export { isInRequestContext, begin, end } from './event';
 
-export function init(cb: (err: Error | undefined) => void): void {
+export interface IOptions {
+  serverHostname: string;
+  serverPort: number;
+}
+
+export function init({ serverHostname, serverPort }: IOptions, cb: (err: Error | undefined) => void): void {
+  setServerConnection(serverHostname, serverPort);
   parallel([
     stackInit,
     httpMonitorInit

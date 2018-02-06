@@ -23,28 +23,45 @@ SOFTWARE.
 */
 
 import * as express from 'express';
+import { json } from 'body-parser';
+import { IMeasurementEvent } from './common/common';
 
-const DEFAULT_PORT = 8080;
+const DEFAULT_PORT = 7176;
 
 export interface IOptions {
   port?: number;
 }
 
-export function start(options: IOptions, cb: (err: Error | undefined) => void): void {
+const events: IMeasurementEvent[] = [];
+
+export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): express.Express {
 
   const app = express();
+  app.use(json());
 
-  app.get('/request-inspector', (req, res) => {
+  app.get('/', (req, res) => {
     res.send('Hello World!');
   });
 
-  app.get('/request-inspector/event', (req, res) => {
-    res.send('Hello World!');
+  app.get('/api/events', (req, res) => {
+    res.send(events);
   });
 
-  app.post('/request-inspector/event', (req, res) => {
-    res.send('Hello World!');
+  app.post('/api/events', (req, res) => {
+    const event: IMeasurementEvent = req.body;
+    console.log(`Receive event ${event.id}`);
+    for (let i = 0; i < events.length; i++) {
+      if (event.id === events[i].id) {
+        events[i] = event;
+        res.send('OK');
+        return;
+      }
+    }
+    events.push(req.body);
+    res.send('OK');
   });
 
-  app.listen(options.port || DEFAULT_PORT, cb);
+  app.listen(port, cb);
+
+  return app;
 }

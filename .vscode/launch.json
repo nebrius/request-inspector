@@ -10,7 +10,16 @@
       "name": "Launch Example",
       "program": "${workspaceFolder}/example/test.js",
       "outFiles": [
-        "${workspaceFolder}/**/*.js"
+        "${workspaceFolder}/example/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Server",
+      "program": "${workspaceFolder}/request-inspector-server/bin/cli.js",
+      "outFiles": [
+        "${workspaceFolder}/request-inspector-server/dist/**/*.js"
       ]
     }
   ]

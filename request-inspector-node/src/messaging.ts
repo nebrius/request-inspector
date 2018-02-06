@@ -22,39 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { v4 as uuid } from 'uuid';
-import { getRequestId } from './stack';
 import { IMeasurementEvent } from './common/common';
-import { storeEvent } from './messaging';
+import { request } from 'http';
 
-export function isInRequestContext(): boolean {
-  return !!getRequestId();
+let hostname: string;
+let port: number;
+
+export function setServerConnection(newHostname: string, newPort: number) {
+  hostname = newHostname;
+  port = newPort;
 }
 
-export function begin(name: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
-  if (typeof name !== 'string') {
-    throw new Error('"name" must be a string');
-  }
-  const requestId = getRequestId();
-  if (!requestId) {
-    throw new Error(`"begin" called outside of a request context`);
-  }
-  const newEntry: IMeasurementEvent = {
-    id: uuid(),
-    requestId,
-    name,
-    start: Date.now(),
-    end: NaN,
-    details
-  };
-  storeEvent(newEntry);
-  return newEntry;
-}
+export function storeEvent(event: IMeasurementEvent): void {
 
-export function end(event: IMeasurementEvent) {
-  if (!isNaN(event.end)) {
-    throw new Error(`"end" called twice for ${event.name}`);
+  if (!hostname || !port) {
+    throw new Error('Cannot store event before the server hostname and port are set');
   }
-  event.end = Date.now();
-  storeEvent(event);
+
+  const data = JSON.stringify(event);
+
+  const req = request({
+    protocol: 'http:',
+    hostname,
+    port,
+    path: `/api/events`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  }, (res) => {
+    if (!res.statusCode) {
+      console.warn('Request Inspector: received no status code from the Request Inspector server');
+    } else if (res.statusCode >= 400) {
+      console.warn(`Request Inspector: Request Inspector server returned ${res.statusCode}`);
+    }
+  });
+
+  req.on('error', (err) => {
+    console.warn(`Request Inspector: error saving event to the server: ${err}`);
+  });
+
+  req.write(data);
+  req.end();
 }

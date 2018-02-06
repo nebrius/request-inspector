@@ -25,25 +25,28 @@ SOFTWARE.
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const stack_1 = require("./stack");
-function begin(name) {
+const messaging_1 = require("./messaging");
+function isInRequestContext() {
+    return !!stack_1.getRequestId();
+}
+exports.isInRequestContext = isInRequestContext;
+function begin(name, details = {}) {
     if (typeof name !== 'string') {
         throw new Error('"name" must be a string');
     }
     const requestId = stack_1.getRequestId();
     if (!requestId) {
-        throw new Error(`Could not find request ID`);
+        throw new Error(`"begin" called outside of a request context`);
     }
-    const contextPath = stack_1.getContextPath();
-    console.log(contextPath);
-    // Do a thing with contextPath?
     const newEntry = {
         id: uuid_1.v4(),
+        requestId,
         name,
         start: Date.now(),
         end: NaN,
-        requestId
+        details
     };
-    // Do a thing with this entry
+    messaging_1.storeEvent(newEntry);
     return newEntry;
 }
 exports.begin = begin;
@@ -52,6 +55,7 @@ function end(event) {
         throw new Error(`"end" called twice for ${event.name}`);
     }
     event.end = Date.now();
+    messaging_1.storeEvent(event);
 }
 exports.end = end;
 //# sourceMappingURL=event.js.map

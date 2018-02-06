@@ -23,11 +23,11 @@ SOFTWARE.
 */
 
 import { createHook, executionAsyncId as getExecutionAsyncId } from 'async_hooks';
-import { ClientRequest } from 'http';
+import { IncomingMessage } from 'http';
 import { v4 as uuid } from 'uuid';
 
 const relationships: { [ triggerId: number ]: number } = {};
-const requests: { [ requestId: string ]: number[] } = {};
+const requests: { [ requestId: string ]: string } = {};
 
 export function init(cb: (err: Error | undefined) => void): void {
   const asyncHook = createHook({
@@ -45,20 +45,25 @@ export function init(cb: (err: Error | undefined) => void): void {
   setImmediate(cb);
 }
 
-export function registerRequest(request: ClientRequest): void {
-  let requestId = request.getHeader('X-Request-Inspector-Request-ID');
-  if (!requestId) {
-    requestId = uuid();
-    request.setHeader('X-Request-Inspector-Request-ID', requestId);
-  }
+export function registerRequest(request: IncomingMessage): void {
+  const requestId = request.headers['X-Request-Inspector-Request-ID'] || uuid();
   requests[requestId as string] = getContextPath();
 }
 
 export function getRequestId(): string | undefined {
+  const contextPath = getContextPath();
+  for (const requestId in requests) {
+    if (!requests.hasOwnProperty(requestId)) {
+      continue;
+    }
+    if (contextPath.startsWith(requests[requestId])) {
+      return requestId;
+    }
+  }
   return;
 }
 
-export function getContextPath(): number[] {
+export function getContextPath(): string {
   const executionAsyncId = getExecutionAsyncId();
   function findRoot(execId: number): number[] {
     if (!relationships.hasOwnProperty(execId)) {
@@ -67,5 +72,5 @@ export function getContextPath(): number[] {
       return findRoot(relationships[execId]).concat([ execId ]);
     }
   }
-  return findRoot(executionAsyncId);
+  return findRoot(executionAsyncId).join('/');
 }

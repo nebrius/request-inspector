@@ -22,6 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-require('../dist/index').start({}, () => {
+require('../dist/index').start({ port: 8080 }, () => {
   console.log('Request Inspector running');
 });

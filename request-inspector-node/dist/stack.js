@@ -45,15 +45,20 @@ function init(cb) {
 }
 exports.init = init;
 function registerRequest(request) {
-    let requestId = request.getHeader('X-Request-Inspector-Request-ID');
-    if (!requestId) {
-        requestId = uuid_1.v4();
-        request.setHeader('X-Request-Inspector-Request-ID', requestId);
-    }
+    const requestId = request.headers['X-Request-Inspector-Request-ID'] || uuid_1.v4();
     requests[requestId] = getContextPath();
 }
 exports.registerRequest = registerRequest;
 function getRequestId() {
+    const contextPath = getContextPath();
+    for (const requestId in requests) {
+        if (!requests.hasOwnProperty(requestId)) {
+            continue;
+        }
+        if (contextPath.startsWith(requests[requestId])) {
+            return requestId;
+        }
+    }
     return;
 }
 exports.getRequestId = getRequestId;
@@ -67,7 +72,7 @@ function getContextPath() {
             return findRoot(relationships[execId]).concat([execId]);
         }
     }
-    return findRoot(executionAsyncId);
+    return findRoot(executionAsyncId).join('/');
 }
 exports.getContextPath = getContextPath;
 //# sourceMappingURL=stack.js.map
