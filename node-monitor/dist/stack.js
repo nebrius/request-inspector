@@ -54,11 +54,13 @@ function registerRequestId(requestId) {
 exports.registerRequestId = registerRequestId;
 function getCurrentRequestId() {
     const contextPath = getContextPath();
+    console.log(contextPath);
     for (const requestId in requests) {
         if (!requests.hasOwnProperty(requestId)) {
             continue;
         }
         if (contextPath.startsWith(requests[requestId])) {
+            console.log(requests[requestId]);
             return requestId;
         }
     }

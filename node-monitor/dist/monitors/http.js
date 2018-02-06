@@ -65,51 +65,6 @@ function init(cb) {
         }
         return server;
     };
-    function patchRequest(module, protocol) {
-        const oldRequest = http.request;
-        http.request = function request(...args) {
-            const req = oldRequest.apply(this, args);
-            if (args.length === 3 && args[2] === 'is_request_inspector_call') {
-                return req;
-            }
-            const requestId = stack_1.getCurrentRequestId();
-            if (!requestId) {
-                return req;
-            }
-            req.setHeader(common_1.HEADER_NAME, requestId);
-            const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_CLIENT_REQUEST);
-            const options = args[0];
-            let url;
-            let method;
-            if (typeof options === 'string') {
-                method = 'GET';
-                url = options;
-            }
-            else {
-                method = options.method || 'GET';
-                if (options.host) {
-                    url = `${protocol}//${options.host}`;
-                }
-                else if (options.hostname) {
-                    url = `${protocol}//${options.hostname}`;
-                    if (options.port) {
-                        url += `:${options.port}`;
-                    }
-                }
-                else {
-                    url = `${protocol}//localhost`;
-                }
-            }
-            req.on('finish', () => event_1.end(measurementEvent, {
-                url,
-                method,
-                headers: Object.assign({}, req.getHeaders())
-            }));
-            return req;
-        };
-    }
-    patchRequest(http, 'http:');
-    patchRequest(https, 'https:');
     setImmediate(cb);
 }
 exports.init = init;

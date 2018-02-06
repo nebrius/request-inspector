@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Request Inspector</title>
+  </head>
+  <body>
+    <ul>
+      {{#each requests}}
+        <div>
+          <div><h3>Request {{this.url}}</h3></div>
+          <div>
+            <p>Events:</p>
+            {{#each this.events}}
+              <div>
+                <div>name: {{this.name}}</div>
+                <div>start: {{this.start}}</div>
+                <div>end: {{this.end}}</div>
+                <div>
+                  {{#each this.details}}
+                      <div>{{@key}}: {{this}}</div>
+                  {{/each}}
+                </div>
+              </div>
+              <br />
+            {{/each}}
+          </div>
+        </div>
+      {{/each}}
+    </ul>
+  </body>
+</html>

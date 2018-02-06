@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { registerRequestId, getCurrentRequestId } from '../stack';
+import { registerRequestId } from '../stack';
 import { begin, end } from '../event';
 import { EVENT_NAMES, HEADER_NAME } from '../common/common';
 import { v4 as uuid } from 'uuid';
@@ -71,49 +71,6 @@ export function init(cb: (err: Error | undefined) => void): void {
     }
     return server;
   };
-
-  function patchRequest(module: any, protocol: string): void {
-    const oldRequest = http.request;
-    http.request = function request(...args: any[]): http.ClientRequest {
-      const req: http.ClientRequest = oldRequest.apply(this, args);
-      if (args.length === 3 && args[2] === 'is_request_inspector_call') {
-        return req;
-      }
-      const requestId = getCurrentRequestId();
-      if (!requestId) {
-        return req;
-      }
-      req.setHeader(HEADER_NAME, requestId);
-      const measurementEvent = begin(EVENT_NAMES.NODE_HTTP_CLIENT_REQUEST);
-      const options: http.ClientRequestArgs | string = args[0];
-      let url: string;
-      let method: string;
-      if (typeof options === 'string') {
-        method = 'GET';
-        url = options;
-      } else {
-        method = options.method || 'GET';
-        if (options.host) {
-          url = `${protocol}//${options.host}`;
-        } else if (options.hostname) {
-          url = `${protocol}//${options.hostname}`;
-          if (options.port) {
-            url += `:${options.port}`;
-          }
-        } else {
-          url = `${protocol}//localhost`;
-        }
-      }
-      req.on('finish', () => end(measurementEvent, {
-        url,
-        method,
-        headers: { ...req.getHeaders() }
-      }));
-      return req;
-    };
-  }
-  patchRequest(http, 'http:');
-  patchRequest(https, 'https:');
 
   setImmediate(cb);
 }

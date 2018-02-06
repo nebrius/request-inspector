@@ -14,8 +14,12 @@ monitor.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
   const app = express();
   app.get('/', (req, res) => {
     res.on('finish', () => {});
+    const clientRequestEvent = monitor.begin('client-request');
     request(4, () => {;
+      monitor.end(clientRequestEvent);
+      const fileReadEvent = monitor.begin('file-read');
       fs.readFile('./package.json', (err, data) => {
+        monitor.end(fileReadEvent);
         res.send(data);
       });
     });

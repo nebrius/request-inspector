@@ -25,6 +25,9 @@ SOFTWARE.
 import * as express from 'express';
 import { json } from 'body-parser';
 import { IMeasurementEvent } from './common/common';
+import { compile } from 'handlebars';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const DEFAULT_PORT = 7176;
 
@@ -32,32 +35,58 @@ export interface IOptions {
   port?: number;
 }
 
-const events: IMeasurementEvent[] = [];
+interface IRequestEntry {
+  requestId: string;
+  url: string;
+  events: IMeasurementEvent[];
+}
+
+const requests: IRequestEntry[] = [];
 
 export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): express.Express {
+
+  const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
 
   const app = express();
   app.use(json());
 
   app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send(template({ requests }));
   });
 
-  app.get('/api/events', (req, res) => {
-    res.send(events);
+  app.get('/api/requests', (req, res) => {
+    res.send(requests);
   });
 
   app.post('/api/events', (req, res) => {
     const event: IMeasurementEvent = req.body;
-    console.log(`Receive event ${event.id}`);
-    for (let i = 0; i < events.length; i++) {
-      if (event.id === events[i].id) {
-        events[i] = event;
-        res.send('OK');
-        return;
+    console.log(`Received event ${event.name} (${event.id}) for request ${event.requestId}`);
+    let requestEntry: IRequestEntry | undefined;
+    for (const request of requests) {
+      if (request.requestId === event.requestId) {
+        requestEntry = request;
+        break;
       }
     }
-    events.push(req.body);
+    if (!requestEntry) {
+      requestEntry = {
+        requestId: event.requestId,
+        url: event.details.url,
+        events: []
+      };
+      requests.push(requestEntry);
+    }
+    let existingEventUpdated = false;
+    for (let i = 0; i < requestEntry.events.length; i++) {
+      if (requestEntry.events[i].id === event.id) {
+        requestEntry.events[i] = event;
+        existingEventUpdated = true;
+        break;
+      }
+    }
+    if (!existingEventUpdated) {
+      requestEntry.events.push(event);
+    }
     res.send('OK');
   });
 

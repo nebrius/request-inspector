@@ -25,28 +25,50 @@ SOFTWARE.
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const body_parser_1 = require("body-parser");
+const handlebars_1 = require("handlebars");
+const fs_1 = require("fs");
+const path_1 = require("path");
 const DEFAULT_PORT = 7176;
-const events = [];
+const requests = [];
 function start({ port = DEFAULT_PORT }, cb) {
+    const template = handlebars_1.compile(fs_1.readFileSync(path_1.join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
     const app = express();
     app.use(body_parser_1.json());
     app.get('/', (req, res) => {
-        res.send('Hello World!');
+        res.send(template({ requests }));
     });
-    app.get('/api/events', (req, res) => {
-        res.send(events);
+    app.get('/api/requests', (req, res) => {
+        res.send(requests);
     });
     app.post('/api/events', (req, res) => {
         const event = req.body;
-        console.log(`Receive event ${event.id}`);
-        for (let i = 0; i < events.length; i++) {
-            if (event.id === events[i].id) {
-                events[i] = event;
-                res.send('OK');
-                return;
+        console.log(`Received event ${event.name} (${event.id}) for request ${event.requestId}`);
+        let requestEntry;
+        for (const request of requests) {
+            if (request.requestId === event.requestId) {
+                requestEntry = request;
+                break;
             }
         }
-        events.push(req.body);
+        if (!requestEntry) {
+            requestEntry = {
+                requestId: event.requestId,
+                url: event.details.url,
+                events: []
+            };
+            requests.push(requestEntry);
+        }
+        let existingEventUpdated = false;
+        for (let i = 0; i < requestEntry.events.length; i++) {
+            if (requestEntry.events[i].id === event.id) {
+                requestEntry.events[i] = event;
+                existingEventUpdated = true;
+                break;
+            }
+        }
+        if (!existingEventUpdated) {
+            requestEntry.events.push(event);
+        }
         res.send('OK');
     });
     app.listen(port, cb);
