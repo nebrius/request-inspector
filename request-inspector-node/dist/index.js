@@ -1,3 +1,5 @@
+"use strict";
+/*
 MIT License
 
 Copyright (c) 2018 Bryan Hughes <bryan@nebri.us>
@@ -19,3 +21,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", { value: true });
+const stack_1 = require("./stack");
+const http_1 = require("./monitors/http");
+const async_1 = require("async");
+var event_1 = require("./event");
+exports.begin = event_1.begin;
+exports.end = event_1.end;
+function init(cb) {
+    async_1.parallel([
+        stack_1.init,
+        http_1.init
+    ], cb);
+}
+exports.init = init;
+//# sourceMappingURL=index.js.map

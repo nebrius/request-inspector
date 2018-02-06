@@ -1,0 +1,27 @@
+{
+  "name": "request-inspector-browser",
+  "version": "1.0.0",
+  "description": "A request timing diagnostic tool for Web and Node.js applications",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nebrius/request-inspector.git"
+  },
+  "keywords": [
+    "diagnostics",
+    "request"
+  ],
+  "author": "Bryan Hughes <bryan@nebri.us>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nebrius/request-inspector/issues"
+  },
+  "homepage": "https://github.com/nebrius/request-inspector#readme",
+  "devDependencies": {
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.1"
+  }
+}

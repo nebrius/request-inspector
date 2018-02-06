@@ -1,3 +1,4 @@
+/*
 MIT License
 
 Copyright (c) 2018 Bryan Hughes <bryan@nebri.us>
@@ -19,3 +20,28 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+import { getContextPath, registerRequest } from '../stack';
+import { begin, end } from '../event';
+
+import http = require('http');
+
+export function init(cb: (err: Error | undefined) => void): void {
+  const oldCreateServer = http.createServer;
+  http.createServer = function createServer(...args: any[]): http.Server {
+    const server = oldCreateServer.apply(this, args);
+    server.on('request', (req: http.ClientRequest, res: http.ServerResponse) => {
+      registerRequest(req);
+      const measurementEvent = begin('http-server-on:request');
+      console.log('request', getContextPath());
+      res.on('close', () => end(measurementEvent));
+    });
+    return server;
+  };
+
+  // const oldRequest = http.request;
+  // TODO: create and set HTTP header
+
+  setImmediate(cb);
+}

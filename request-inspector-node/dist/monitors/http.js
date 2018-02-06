@@ -1,3 +1,5 @@
+"use strict";
+/*
 MIT License
 
 Copyright (c) 2018 Bryan Hughes <bryan@nebri.us>
@@ -19,3 +21,26 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", { value: true });
+const stack_1 = require("../stack");
+const event_1 = require("../event");
+const http = require("http");
+function init(cb) {
+    const oldCreateServer = http.createServer;
+    http.createServer = function createServer(...args) {
+        const server = oldCreateServer.apply(this, args);
+        server.on('request', (req, res) => {
+            stack_1.registerRequest(req);
+            const measurementEvent = event_1.begin('http-server-on:request');
+            console.log('request', stack_1.getContextPath());
+            res.on('close', () => event_1.end(measurementEvent));
+        });
+        return server;
+    };
+    // const oldRequest = http.request;
+    // TODO: create and set HTTP header
+    setImmediate(cb);
+}
+exports.init = init;
+//# sourceMappingURL=http.js.map

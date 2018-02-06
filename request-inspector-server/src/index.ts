@@ -1,3 +1,4 @@
+/*
 MIT License
 
 Copyright (c) 2018 Bryan Hughes <bryan@nebri.us>
@@ -19,3 +20,31 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+import * as express from 'express';
+
+const DEFAULT_PORT = 8080;
+
+export interface IOptions {
+  port?: number;
+}
+
+export function start(options: IOptions, cb: (err: Error | undefined) => void): void {
+
+  const app = express();
+
+  app.get('/request-inspector', (req, res) => {
+    res.send('Hello World!');
+  });
+
+  app.get('/request-inspector/event', (req, res) => {
+    res.send('Hello World!');
+  });
+
+  app.post('/request-inspector/event', (req, res) => {
+    res.send('Hello World!');
+  });
+
+  app.listen(options.port || DEFAULT_PORT, cb);
+}

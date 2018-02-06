@@ -1,3 +1,4 @@
+/*
 MIT License
 
 Copyright (c) 2018 Bryan Hughes <bryan@nebri.us>
@@ -19,3 +20,44 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+import { v4 as uuid } from 'uuid';
+import { getRequestId, getContextPath } from './stack';
+
+export interface IMeasurementEvent {
+  id: string;
+  name: string;
+  start: number;
+  end: number;
+  requestId: string;
+}
+
+export function begin(name: string): IMeasurementEvent {
+  if (typeof name !== 'string') {
+    throw new Error('"name" must be a string');
+  }
+  const requestId = getRequestId();
+  if (!requestId) {
+    throw new Error(`Could not find request ID`);
+  }
+  const contextPath = getContextPath();
+  console.log(contextPath);
+  // Do a thing with contextPath?
+  const newEntry: IMeasurementEvent = {
+    id: uuid(),
+    name,
+    start: Date.now(),
+    end: NaN,
+    requestId
+  };
+  // Do a thing with this entry
+  return newEntry;
+}
+
+export function end(event: IMeasurementEvent) {
+  if (!isNaN(event.end)) {
+    throw new Error(`"end" called twice for ${event.name}`);
+  }
+  event.end = Date.now();
+}

@@ -1,0 +1,22 @@
+{
+  "name": "request-inspector-example",
+  "version": "1.0.0",
+  "description": "An example application showing off Request Inspector",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nebrius/request-inspector.git"
+  },
+  "author": "Bryan Hughes <bryan@nebri.us>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nebrius/request-inspector/issues"
+  },
+  "homepage": "https://github.com/nebrius/request-inspector#readme",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}
