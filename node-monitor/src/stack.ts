@@ -23,11 +23,11 @@ SOFTWARE.
 */
 
 import { createHook, executionAsyncId as getExecutionAsyncId } from 'async_hooks';
-import { IncomingMessage } from 'http';
-import { v4 as uuid } from 'uuid';
 
 const relationships: { [ triggerId: number ]: number } = {};
 const requests: { [ requestId: string ]: string } = {};
+
+const rootContextPath = getContextPath();
 
 export function init(cb: (err: Error | undefined) => void): void {
   const asyncHook = createHook({
@@ -45,12 +45,15 @@ export function init(cb: (err: Error | undefined) => void): void {
   setImmediate(cb);
 }
 
-export function registerRequest(request: IncomingMessage): void {
-  const requestId = request.headers['X-Request-Inspector-Request-ID'] || uuid();
-  requests[requestId as string] = getContextPath();
+export function registerRequestId(requestId: string): void {
+  const contextPath = getContextPath();
+  if (rootContextPath === contextPath) {
+    throw new Error('Attempted to register a request in the root context');
+  }
+  requests[requestId] = getContextPath();
 }
 
-export function getRequestId(): string | undefined {
+export function getCurrentRequestId(): string | undefined {
   const contextPath = getContextPath();
   for (const requestId in requests) {
     if (!requests.hasOwnProperty(requestId)) {

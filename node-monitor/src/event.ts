@@ -23,19 +23,19 @@ SOFTWARE.
 */
 
 import { v4 as uuid } from 'uuid';
-import { getRequestId } from './stack';
+import { getCurrentRequestId } from './stack';
 import { IMeasurementEvent } from './common/common';
 import { storeEvent } from './messaging';
 
 export function isInRequestContext(): boolean {
-  return !!getRequestId();
+  return !!getCurrentRequestId();
 }
 
 export function begin(name: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
   if (typeof name !== 'string') {
     throw new Error('"name" must be a string');
   }
-  const requestId = getRequestId();
+  const requestId = getCurrentRequestId();
   if (!requestId) {
     throw new Error(`"begin" called outside of a request context`);
   }
@@ -51,10 +51,14 @@ export function begin(name: string, details: { [ key: string ]: any } = {}): IMe
   return newEntry;
 }
 
-export function end(event: IMeasurementEvent) {
+export function end(event: IMeasurementEvent, details: { [ key: string ]: any } = {}): void {
   if (!isNaN(event.end)) {
     throw new Error(`"end" called twice for ${event.name}`);
   }
   event.end = Date.now();
+  event.details = {
+    ...event.details,
+    ...details
+  };
   storeEvent(event);
 }

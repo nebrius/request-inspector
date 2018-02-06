@@ -27,14 +27,14 @@ const uuid_1 = require("uuid");
 const stack_1 = require("./stack");
 const messaging_1 = require("./messaging");
 function isInRequestContext() {
-    return !!stack_1.getRequestId();
+    return !!stack_1.getCurrentRequestId();
 }
 exports.isInRequestContext = isInRequestContext;
 function begin(name, details = {}) {
     if (typeof name !== 'string') {
         throw new Error('"name" must be a string');
     }
-    const requestId = stack_1.getRequestId();
+    const requestId = stack_1.getCurrentRequestId();
     if (!requestId) {
         throw new Error(`"begin" called outside of a request context`);
     }
@@ -50,11 +50,12 @@ function begin(name, details = {}) {
     return newEntry;
 }
 exports.begin = begin;
-function end(event) {
+function end(event, details = {}) {
     if (!isNaN(event.end)) {
         throw new Error(`"end" called twice for ${event.name}`);
     }
     event.end = Date.now();
+    event.details = Object.assign({}, event.details, details);
     messaging_1.storeEvent(event);
 }
 exports.end = end;

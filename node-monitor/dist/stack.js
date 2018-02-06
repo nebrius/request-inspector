@@ -24,9 +24,9 @@ SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 const async_hooks_1 = require("async_hooks");
-const uuid_1 = require("uuid");
 const relationships = {};
 const requests = {};
+const rootContextPath = getContextPath();
 function init(cb) {
     const asyncHook = async_hooks_1.createHook({
         init: (executionAsyncId, type, triggerAsyncId, resource) => {
@@ -44,12 +44,15 @@ function init(cb) {
     setImmediate(cb);
 }
 exports.init = init;
-function registerRequest(request) {
-    const requestId = request.headers['X-Request-Inspector-Request-ID'] || uuid_1.v4();
+function registerRequestId(requestId) {
+    const contextPath = getContextPath();
+    if (rootContextPath === contextPath) {
+        throw new Error('Attempted to register a request in the root context');
+    }
     requests[requestId] = getContextPath();
 }
-exports.registerRequest = registerRequest;
-function getRequestId() {
+exports.registerRequestId = registerRequestId;
+function getCurrentRequestId() {
     const contextPath = getContextPath();
     for (const requestId in requests) {
         if (!requests.hasOwnProperty(requestId)) {
@@ -61,7 +64,7 @@ function getRequestId() {
     }
     return;
 }
-exports.getRequestId = getRequestId;
+exports.getCurrentRequestId = getCurrentRequestId;
 function getContextPath() {
     const executionAsyncId = async_hooks_1.executionAsyncId();
     function findRoot(execId) {

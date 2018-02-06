@@ -14,18 +14,22 @@ monitor.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
   const app = express();
   app.get('/', (req, res) => {
     res.on('finish', () => {});
-    fs.readFile('./package.json', (err, data) => {
-      res.send(data);
+    request(4, () => {;
+      fs.readFile('./package.json', (err, data) => {
+        res.send(data);
+      });
     });
   });
   app.listen(3000, () => console.log('Example app listening on port 3000!'));
 
-  function request(num) {
+  function request(num, cb) {
     const req = http.request('http://nebri.us/static/me.jpg', (res) => {
       res.setEncoding('utf8');
       res.on('data', (chunk) => {});
       res.on('end', () => {
-        setTimeout(() => {});
+        if (cb) {
+          setTimeout(cb, 10);
+        }
       });
     });
 

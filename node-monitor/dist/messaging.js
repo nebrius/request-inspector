@@ -53,7 +53,7 @@ function storeEvent(event) {
         else if (res.statusCode >= 400) {
             console.warn(`Request Inspector: Request Inspector server returned ${res.statusCode}`);
         }
-    });
+    }, 'is_request_inspector_call');
     req.on('error', (err) => {
         console.warn(`Request Inspector: error saving event to the server: ${err}`);
     });

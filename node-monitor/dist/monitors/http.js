@@ -26,20 +26,90 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const stack_1 = require("../stack");
 const event_1 = require("../event");
 const common_1 = require("../common/common");
+const uuid_1 = require("uuid");
 const http = require("http");
+const https = require("https");
 function init(cb) {
-    const oldCreateServer = http.createServer;
-    http.createServer = function createServer(...args) {
-        const server = oldCreateServer.apply(this, args);
-        server.on('request', (req, res) => {
-            stack_1.registerRequest(req);
-            const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_SERVER_REQUEST);
-            res.on('finish', () => event_1.end(measurementEvent));
+    function requestHandler(req, res) {
+        const requestId = req.headers[common_1.HEADER_NAME] || uuid_1.v4();
+        stack_1.registerRequestId(requestId);
+        const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
+            url: req.url,
+            method: req.method,
+            headers: Object.assign({}, req.headers)
         });
+        res.on('finish', () => event_1.end(measurementEvent, {
+            statusCode: res.statusCode,
+            headers: Object.assign({}, res.getHeaders())
+        }));
+    }
+    const oldHttpCreateServer = http.createServer;
+    http.createServer = function createServer(handler) {
+        const server = oldHttpCreateServer.call(this);
+        server.on('request', requestHandler);
+        if (handler) {
+            server.on('request', handler);
+        }
         return server;
     };
-    // const oldRequest = http.request;
-    // TODO: create and set HTTP header
+    const oldHttpsCreateServer = https.createServer;
+    https.createServer = function createServer(options, handler) {
+        if (typeof options === 'function') {
+            handler = options;
+            options = undefined;
+        }
+        const server = oldHttpsCreateServer.call(this, options);
+        server.on('request', requestHandler);
+        if (handler) {
+            server.on('request', handler);
+        }
+        return server;
+    };
+    function patchRequest(module, protocol) {
+        const oldRequest = http.request;
+        http.request = function request(...args) {
+            const req = oldRequest.apply(this, args);
+            if (args.length === 3 && args[2] === 'is_request_inspector_call') {
+                return req;
+            }
+            const requestId = stack_1.getCurrentRequestId();
+            if (!requestId) {
+                return req;
+            }
+            req.setHeader(common_1.HEADER_NAME, requestId);
+            const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_CLIENT_REQUEST);
+            const options = args[0];
+            let url;
+            let method;
+            if (typeof options === 'string') {
+                method = 'GET';
+                url = options;
+            }
+            else {
+                method = options.method || 'GET';
+                if (options.host) {
+                    url = `${protocol}//${options.host}`;
+                }
+                else if (options.hostname) {
+                    url = `${protocol}//${options.hostname}`;
+                    if (options.port) {
+                        url += `:${options.port}`;
+                    }
+                }
+                else {
+                    url = `${protocol}//localhost`;
+                }
+            }
+            req.on('finish', () => event_1.end(measurementEvent, {
+                url,
+                method,
+                headers: Object.assign({}, req.getHeaders())
+            }));
+            return req;
+        };
+    }
+    patchRequest(http, 'http:');
+    patchRequest(https, 'https:');
     setImmediate(cb);
 }
 exports.init = init;

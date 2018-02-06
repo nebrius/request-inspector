@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 import { IMeasurementEvent } from './common/common';
-import { request } from 'http';
+import { request, ServerResponse } from 'http';
 
 let hostname: string;
 let port: number;
@@ -41,7 +41,7 @@ export function storeEvent(event: IMeasurementEvent): void {
 
   const data = JSON.stringify(event);
 
-  const req = request({
+  const req = (request as any)({
     protocol: 'http:',
     hostname,
     port,
@@ -51,15 +51,15 @@ export function storeEvent(event: IMeasurementEvent): void {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(data)
     }
-  }, (res) => {
+  }, (res: ServerResponse) => {
     if (!res.statusCode) {
       console.warn('Request Inspector: received no status code from the Request Inspector server');
     } else if (res.statusCode >= 400) {
       console.warn(`Request Inspector: Request Inspector server returned ${res.statusCode}`);
     }
-  });
+  }, 'is_request_inspector_call');
 
-  req.on('error', (err) => {
+  req.on('error', (err: Error | string) => {
     console.warn(`Request Inspector: error saving event to the server: ${err}`);
   });
 
