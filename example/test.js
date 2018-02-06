@@ -1,5 +1,5 @@
-const inspector = require('../request-inspector-node/');
-inspector.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
+const monitor = require('../node-monitor/');
+monitor.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
 
   const http = require('http');
   const fs = require('fs');

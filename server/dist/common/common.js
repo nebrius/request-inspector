@@ -23,24 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-const stack_1 = require("../stack");
-const event_1 = require("../event");
-const common_1 = require("../common/common");
-const http = require("http");
-function init(cb) {
-    const oldCreateServer = http.createServer;
-    http.createServer = function createServer(...args) {
-        const server = oldCreateServer.apply(this, args);
-        server.on('request', (req, res) => {
-            stack_1.registerRequest(req);
-            const measurementEvent = event_1.begin(common_1.EVENT_NAMES.HTTP_SERVER_REQUEST);
-            res.on('finish', () => event_1.end(measurementEvent));
-        });
-        return server;
-    };
-    // const oldRequest = http.request;
-    // TODO: create and set HTTP header
-    setImmediate(cb);
-}
-exports.init = init;
-//# sourceMappingURL=http.js.map
+exports.EVENT_NAMES = {
+    NODE_HTTP_SERVER_REQUEST: 'node:http.Server#on-request'
+};
+//# sourceMappingURL=common.js.map

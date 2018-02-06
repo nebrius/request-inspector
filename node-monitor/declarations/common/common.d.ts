@@ -9,5 +9,5 @@ export interface IMeasurementEvent {
     };
 }
 export declare const EVENT_NAMES: {
-    HTTP_SERVER_REQUEST: string;
+    NODE_HTTP_SERVER_REQUEST: string;
 };

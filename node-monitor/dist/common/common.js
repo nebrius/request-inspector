@@ -24,6 +24,6 @@ SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVENT_NAMES = {
-    HTTP_SERVER_REQUEST: 'http.Server#on-request'
+    NODE_HTTP_SERVER_REQUEST: 'node:http.Server#on-request'
 };
 //# sourceMappingURL=common.js.map

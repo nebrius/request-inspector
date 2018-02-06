@@ -17,9 +17,9 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Server",
-      "program": "${workspaceFolder}/request-inspector-server/bin/cli.js",
+      "program": "${workspaceFolder}/server/bin/cli.js",
       "outFiles": [
-        "${workspaceFolder}/request-inspector-server/dist/**/*.js"
+        "${workspaceFolder}/server/dist/**/*.js"
       ]
     }
   ]
