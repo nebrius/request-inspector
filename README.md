@@ -1,5 +1,8 @@
 # Request Inspector
 
+**WARNING:** This software is still in beta. It is highly likely that you will
+encounter bugs. If you do, please file an issue and let me know!
+
 Request Inspector is an HTTP(S) request diagnostic tool for Node.js servers.
 
 When a web or mobile client makes an HTTP call to a backend, it can be tricky
