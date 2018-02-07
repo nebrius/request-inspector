@@ -16,7 +16,7 @@ correlates all of this data.
 
 Here is a screenshot showing the timeline working across three separate servers:
 
-INSERT PHOTO HERE!
+![UI Screenshot](https://user-images.githubusercontent.com/1141386/35941185-488be068-0c06-11e8-9d6e-a65c480a2ddf.png)
 
 ## Installation
 
