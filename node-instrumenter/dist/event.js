@@ -34,9 +34,13 @@ function begin(name, details = {}) {
     if (typeof name !== 'string') {
         throw new Error('"name" must be a string');
     }
+    if (!isInRequestContext()) {
+        throw new Error(`"begin" called outside of a request context`);
+    }
     const requestId = stack_1.getCurrentRequestId();
     if (!requestId) {
-        throw new Error(`"begin" called outside of a request context`);
+        throw new Error('Internal Error: could not get request ID. ' +
+            'This is a bug in Request Inspector, please report it to the author.');
     }
     const newEntry = {
         id: uuid_1.v4(),

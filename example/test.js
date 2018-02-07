@@ -1,4 +1,4 @@
-const monitor = require('../node-monitor/');
+const monitor = require('../node-instrumenter/');
 monitor.init({ serverHostname: 'localhost', serverPort: 8080 }, (err) => {
 
   const http = require('http');

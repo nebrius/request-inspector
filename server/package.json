@@ -1,5 +1,5 @@
 {
-  "name": "request-inspector-server",
+  "name": "@request-inspector/server",
   "version": "1.0.0",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "main": "lib/index.js",

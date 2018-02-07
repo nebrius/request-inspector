@@ -14,9 +14,19 @@
       "problemMatcher": []
     },
     {
-      "label": "build-node-monitor",
+      "label": "build-node-instrumenter",
       "type": "shell",
-      "command": "cd ${workspaceRoot}/node-monitor && npm run build",
+      "command": "cd ${workspaceRoot}/node-instrumenter && npm run build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build-browser-instrumenter",
+      "type": "shell",
+      "command": "cd ${workspaceRoot}/browser-instrumenter && npm run build",
       "group": {
         "kind": "build",
         "isDefault": true

@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { registerRequestId } from '../stack';
-import { begin, end } from '../event';
-import { EVENT_NAMES, HEADER_NAME } from '../common/common';
+import { createHook, executionAsyncId as getExecutionAsyncId } from 'async_hooks';
+import { begin, end } from './event';
+import { EVENT_NAMES, HEADER_NAME } from './common/common';
 import { v4 as uuid } from 'uuid';
 
 import http = require('http');
@@ -32,7 +32,24 @@ import https = require('https');
 
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
+const relationships: { [ triggerId: number ]: number } = {};
+const requests: { [ requestId: string ]: string } = {};
+
+const rootContextPath = getContextPath();
+
 export function init(cb: (err: Error | undefined) => void): void {
+  const asyncHook = createHook({
+    init: (executionAsyncId, type, triggerAsyncId, resource) => {
+      if (relationships.hasOwnProperty(executionAsyncId)) {
+        if (relationships[executionAsyncId] !== triggerAsyncId) {
+          throw new Error('Inconsistent relationship');
+        }
+      } else {
+        relationships[executionAsyncId] = triggerAsyncId;
+      }
+    }
+  });
+  asyncHook.enable();
 
   function requestHandler(req: http.IncomingMessage, res: http.ServerResponse): void {
     const requestId = req.headers[HEADER_NAME] as string || uuid();
@@ -73,4 +90,39 @@ export function init(cb: (err: Error | undefined) => void): void {
   };
 
   setImmediate(cb);
+}
+
+export function registerRequestId(requestId: string): void {
+  const contextPath = getContextPath();
+  if (rootContextPath === contextPath) {
+    throw new Error('Attempted to register a request in the root context');
+  }
+  requests[requestId] = getContextPath();
+}
+
+export function getCurrentRequestId(): string | undefined {
+  const contextPath = getContextPath();
+  console.log(contextPath);
+  for (const requestId in requests) {
+    if (!requests.hasOwnProperty(requestId)) {
+      continue;
+    }
+    if (contextPath.startsWith(requests[requestId])) {
+      console.log(requests[requestId]);
+      return requestId;
+    }
+  }
+  return;
+}
+
+export function getContextPath(): string {
+  const executionAsyncId = getExecutionAsyncId();
+  function findRoot(execId: number): number[] {
+    if (!relationships.hasOwnProperty(execId)) {
+      return [ execId ];
+    } else {
+      return findRoot(relationships[execId]).concat([ execId ]);
+    }
+  }
+  return findRoot(executionAsyncId).join('/');
 }

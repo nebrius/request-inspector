@@ -24,6 +24,11 @@ SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 const async_hooks_1 = require("async_hooks");
+const event_1 = require("./event");
+const common_1 = require("./common/common");
+const uuid_1 = require("uuid");
+const http = require("http");
+const https = require("https");
 const relationships = {};
 const requests = {};
 const rootContextPath = getContextPath();
@@ -41,6 +46,41 @@ function init(cb) {
         }
     });
     asyncHook.enable();
+    function requestHandler(req, res) {
+        const requestId = req.headers[common_1.HEADER_NAME] || uuid_1.v4();
+        registerRequestId(requestId);
+        const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
+            url: req.url,
+            method: req.method,
+            headers: Object.assign({}, req.headers)
+        });
+        res.on('finish', () => event_1.end(measurementEvent, {
+            statusCode: res.statusCode,
+            headers: Object.assign({}, res.getHeaders())
+        }));
+    }
+    const oldHttpCreateServer = http.createServer;
+    http.createServer = function createServer(handler) {
+        const server = oldHttpCreateServer.call(this);
+        server.on('request', requestHandler);
+        if (handler) {
+            server.on('request', handler);
+        }
+        return server;
+    };
+    const oldHttpsCreateServer = https.createServer;
+    https.createServer = function createServer(options, handler) {
+        if (typeof options === 'function') {
+            handler = options;
+            options = undefined;
+        }
+        const server = oldHttpsCreateServer.call(this, options);
+        server.on('request', requestHandler);
+        if (handler) {
+            server.on('request', handler);
+        }
+        return server;
+    };
     setImmediate(cb);
 }
 exports.init = init;

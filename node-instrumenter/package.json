@@ -1,10 +1,14 @@
 {
-  "name": "request-inspector-browser",
+  "name": "@request-inspector/node-instrumenter",
   "version": "1.0.0",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
+  "types": "./declarations/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "tslint 'src/**/*.ts'",
+    "build": "rimraf dist declarations && tsc",
+    "postbuild": "echo done"
   },
   "repository": {
     "type": "git",
@@ -21,7 +25,13 @@
   },
   "homepage": "https://github.com/nebrius/request-inspector#readme",
   "devDependencies": {
+    "@types/node": "^9.4.0",
+    "@types/uuid": "^3.4.3",
+    "rimraf": "^2.6.2",
     "tslint": "^5.9.1",
     "typescript": "^2.7.1"
+  },
+  "dependencies": {
+    "uuid": "^3.2.1"
   }
 }

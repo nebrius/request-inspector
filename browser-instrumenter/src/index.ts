@@ -22,23 +22,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { init as stackInit } from './stack';
-import { init as httpMonitorInit } from './monitors/http';
-import { parallel } from 'async';
-import { setServerConnection } from './messaging';
+import { HEADER_NAME } from './common/common';
+import { v4 as uuid } from 'uuid';
 
-export { IMeasurementEvent } from './common/common';
-export { isInRequestContext, begin, end } from './event';
-
-export interface IOptions {
-  serverHostname: string;
-  serverPort: number;
+export function init(): void {
+  // TODO
 }
 
-export function init({ serverHostname, serverPort }: IOptions, cb: (err: Error | undefined) => void): void {
-  setServerConnection(serverHostname, serverPort);
-  parallel([
-    stackInit,
-    httpMonitorInit
-  ], cb);
+if (window.fetch) {
+  const oldFetch = window.fetch;
+  window.fetch = function fetch(input: string | Request, fetchInit?: RequestInit): Promise<Response> {
+    const requestId = uuid();
+    if (fetchInit) {
+      if (fetchInit.headers) {
+        if (fetchInit.headers instanceof Headers) {
+          fetchInit.headers.set(HEADER_NAME, requestId);
+        } else {
+          (fetchInit.headers as any)[HEADER_NAME] = requestId;
+        }
+      } else {
+        fetchInit.headers = {
+          [HEADER_NAME]: requestId
+        };
+      }
+    } else {
+      fetchInit = {
+        headers: {
+          [HEADER_NAME]: requestId
+        }
+      };
+    }
+    return oldFetch(input, fetchInit);
+  };
 }
