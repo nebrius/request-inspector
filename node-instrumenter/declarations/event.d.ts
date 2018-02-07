@@ -1,4 +1,5 @@
 import { IMeasurementEvent } from './common/common';
+export declare function setServiceName(newName: string): void;
 export declare function isInRequestContext(): boolean;
 export declare function begin(name: string, details?: {
     [key: string]: any;

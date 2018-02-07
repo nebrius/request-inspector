@@ -21,12 +21,25 @@ body {
   border-bottom: 1px solid #555;
 }
 
-.details {
+.header {
+  font-weight: bold;
+  background-color: #eee;
+}
+
+.name {
   padding: 5px;
   border-right: 1px solid #555;
   flex-grow: 5;
   flex-basis: 0;
   min-width: 200px;
+}
+
+.service {
+  padding: 5px;
+  border-right: 1px solid #555;
+  flex-grow: 2;
+  flex-basis: 0;
+  min-width: 100px;
 }
 
 .duration {

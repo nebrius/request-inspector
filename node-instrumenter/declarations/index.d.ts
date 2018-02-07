@@ -3,5 +3,7 @@ export { isInRequestContext, begin, end } from './event';
 export interface IOptions {
     serverHostname: string;
     serverPort: number;
+    serviceName: string;
 }
-export declare function init({serverHostname, serverPort}: IOptions, cb: (err: Error | undefined) => void): void;
+export declare type Callback = (err: Error | undefined) => void;
+export declare function init(options: IOptions, cb?: Callback): void;

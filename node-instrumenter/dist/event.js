@@ -26,6 +26,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const stack_1 = require("./stack");
 const messaging_1 = require("./messaging");
+let serviceName;
+function setServiceName(newName) {
+    serviceName = newName;
+}
+exports.setServiceName = setServiceName;
 function isInRequestContext() {
     return !!stack_1.getCurrentRequestId();
 }
@@ -43,6 +48,7 @@ function begin(name, details = {}) {
             'This is a bug in Request Inspector, please report it to the author.');
     }
     const newEntry = {
+        serviceName,
         id: uuid_1.v4(),
         requestId,
         name,

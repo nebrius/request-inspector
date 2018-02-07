@@ -27,6 +27,11 @@ import { getCurrentRequestId } from './stack';
 import { IMeasurementEvent } from './common/common';
 import { storeEvent } from './messaging';
 
+let serviceName: string;
+export function setServiceName(newName: string) {
+  serviceName = newName;
+}
+
 export function isInRequestContext(): boolean {
   return !!getCurrentRequestId();
 }
@@ -44,6 +49,7 @@ export function begin(name: string, details: { [ key: string ]: any } = {}): IMe
       'This is a bug in Request Inspector, please report it to the author.');
   }
   const newEntry: IMeasurementEvent = {
+    serviceName,
     id: uuid(),
     requestId,
     name,

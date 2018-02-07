@@ -7,8 +7,8 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Example",
-      "program": "${workspaceFolder}/example/test.js",
+      "name": "Example App",
+      "program": "${workspaceFolder}/example/app.js",
       "outFiles": [
         "${workspaceFolder}/example/**/*.js"
       ]
@@ -16,7 +16,16 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Server",
+      "name": "Example Renderer",
+      "program": "${workspaceFolder}/example/render-microservice.js",
+      "outFiles": [
+        "${workspaceFolder}/example/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Server",
       "program": "${workspaceFolder}/server/bin/cli.js",
       "outFiles": [
         "${workspaceFolder}/server/dist/**/*.js"

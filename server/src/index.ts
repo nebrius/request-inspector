@@ -44,6 +44,10 @@ interface IRequestEntry {
 
 const requests: IRequestEntry[] = [];
 
+function percent(min: number, value: number): number {
+  return Math.max(min, Math.round(100 * value));
+}
+
 export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): express.Express {
 
   const app = express();
@@ -54,16 +58,21 @@ export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): expres
     const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
 
     res.send(template({ requests: requests.map((request) => {
-      const requestDuration = (request.events[0].end - request.events[0].start);
+      const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
+      const requreDurationValid =
+        typeof request.events[0].start === 'number' &&
+        typeof request.events[0].end === 'number';
       return {
         ...request,
         duration: requestDuration,
+        durationValid: requreDurationValid,
         events: request.events.map((event) => {
           return {
             ...event,
             duration: event.end - event.start,
-            left: Math.round(100 * (event.start - request.events[0].start) / requestDuration),
-            width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)),
+            durationValid: typeof event.end === 'number',
+            left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0,
+            width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0,
           };
         })
       };

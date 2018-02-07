@@ -1,4 +1,5 @@
 export interface IMeasurementEvent {
+    serviceName: string;
     id: string;
     requestId: string;
     name: string;

@@ -24,6 +24,7 @@ SOFTWARE.
 
 import { init as stackInit } from './stack';
 import { setServerConnection } from './messaging';
+import { setServiceName } from './event';
 
 export { IMeasurementEvent } from './common/common';
 export { isInRequestContext, begin, end } from './event';
@@ -31,9 +32,31 @@ export { isInRequestContext, begin, end } from './event';
 export interface IOptions {
   serverHostname: string;
   serverPort: number;
+  serviceName: string;
 }
 
-export function init({ serverHostname, serverPort }: IOptions, cb: (err: Error | undefined) => void): void {
+export type Callback = (err: Error | undefined) => void;
+
+export function init(options: IOptions, cb?: Callback): void {
+  if (!cb) {
+    cb = () => {
+      // DO Nothing
+    };
+  }
+  if (typeof options !== 'object') {
+    throw new Error('"options" must be an object');
+  }
+  const { serverHostname, serverPort, serviceName } = options;
+  if (typeof serverHostname !== 'string') {
+    throw new Error('"serverHostname" option must be a string');
+  }
+  if (typeof serverPort !== 'number') {
+    throw new Error('"serverPort" option must be a number');
+  }
+  if (typeof serviceName !== 'string') {
+    throw new Error('"serviceName" option must be a string');
+  }
   setServerConnection(serverHostname, serverPort);
+  setServiceName(serviceName);
   stackInit(cb);
 }

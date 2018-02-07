@@ -22,19 +22,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-export interface IMeasurementEvent {
-  serviceName: string;
-  id: string;
-  requestId: string;
-  name: string;
-  start: number;
-  end: number;
-  details: { [ key: string ]: any };
-}
+const monitor = require('../node-instrumenter/');
+monitor.init({ serverHostname: 'localhost', serverPort: 8080, serviceName: 'app' }, (initErr) => {
 
-export const EVENT_NAMES = {
-  NODE_HTTP_SERVER_REQUEST: 'node:Server-request',
-  NODE_HTTP_CLIENT_REQUEST: 'node:Client-request'
-};
+  if (initErr) {
+    console.error(initErr);
+    process.exit(-1);
+  }
+  console.log('Request Inspector loaded');
 
-export const HEADER_NAME = 'X-Request-Inspector-Request-ID';
+  const http = require('http');
+  const fs = require('fs');
+  const express = require('express');
+  const request = require('request');
+
+  const app = express();
+
+  app.get('/', (req, res) => {
+    const clientRequestEvent = monitor.begin('client-request');
+    request('http://localhost:3001/api/render', (renderErr, renderRes, body) => {
+      monitor.end(clientRequestEvent);
+      const fileReadEvent = monitor.begin('file-read');
+      fs.readFile('./package.json', (err, data) => {
+        monitor.end(fileReadEvent);
+        res.send(data);
+      });
+    });
+  });
+  app.listen(3000, () => console.log('Example app listening on port 3000!'));
+
+});

@@ -25,12 +25,32 @@ SOFTWARE.
 Object.defineProperty(exports, "__esModule", { value: true });
 const stack_1 = require("./stack");
 const messaging_1 = require("./messaging");
-var event_1 = require("./event");
-exports.isInRequestContext = event_1.isInRequestContext;
-exports.begin = event_1.begin;
-exports.end = event_1.end;
-function init({ serverHostname, serverPort }, cb) {
+const event_1 = require("./event");
+var event_2 = require("./event");
+exports.isInRequestContext = event_2.isInRequestContext;
+exports.begin = event_2.begin;
+exports.end = event_2.end;
+function init(options, cb) {
+    if (!cb) {
+        cb = () => {
+            // DO Nothing
+        };
+    }
+    if (typeof options !== 'object') {
+        throw new Error('"options" must be an object');
+    }
+    const { serverHostname, serverPort, serviceName } = options;
+    if (typeof serverHostname !== 'string') {
+        throw new Error('"serverHostname" option must be a string');
+    }
+    if (typeof serverPort !== 'number') {
+        throw new Error('"serverPort" option must be a number');
+    }
+    if (typeof serviceName !== 'string') {
+        throw new Error('"serviceName" option must be a string');
+    }
     messaging_1.setServerConnection(serverHostname, serverPort);
+    event_1.setServiceName(serviceName);
     stack_1.init(cb);
 }
 exports.init = init;
