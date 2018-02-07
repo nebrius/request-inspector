@@ -16,6 +16,15 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Example Template",
+      "program": "${workspaceFolder}/example/template-microservice.js",
+      "outFiles": [
+        "${workspaceFolder}/example/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Example Renderer",
       "program": "${workspaceFolder}/example/render-microservice.js",
       "outFiles": [

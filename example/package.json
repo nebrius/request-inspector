@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/nebrius/request-inspector#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "handlebars": "^4.0.11",
     "request": "^2.83.0"

@@ -39,13 +39,29 @@ monitor.init({ serverHostname: 'localhost', serverPort: 8080, serviceName: 'app'
   const app = express();
 
   app.get('/', (req, res) => {
-    const clientRequestEvent = monitor.begin('client-request');
-    request('http://localhost:3001/api/render', (renderErr, renderRes, body) => {
-      monitor.end(clientRequestEvent);
-      const fileReadEvent = monitor.begin('file-read');
-      fs.readFile('./package.json', (err, data) => {
-        monitor.end(fileReadEvent);
-        res.send(data);
+    const templateRequestEvent = monitor.begin('template-request');
+    request('http://localhost:3001/api/template', (templateErr, templateRes, templateBody) => {
+      if (templateErr || templateRes.statusCode >= 400) {
+        res.sendStatus(500);
+        return;
+      }
+      monitor.end(templateRequestEvent);
+      const renderRequestEvent = monitor.begin('render-request');
+      request({
+        url: 'http://localhost:3002/api/render',
+        json: true,
+        body: {
+          template: templateBody.toString(),
+          date: (new Date()).toString()
+        },
+        method: 'POST'
+      }, (renderErr, renderRes, renderBody) => {
+        if (renderErr || renderRes.statusCode >= 400) {
+          res.sendStatus(500);
+          return;
+        }
+        monitor.end(renderRequestEvent);
+        res.send(renderBody);
       });
     });
   });

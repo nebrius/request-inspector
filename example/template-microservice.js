@@ -32,20 +32,23 @@ monitor.init({ serverHostname: 'localhost', serverPort: 8080, serviceName: 'app'
   console.log('Request Inspector loaded');
 
   const http = require('http');
+  const fs = require('fs');
+  const path = require('path');
   const express = require('express');
-  const bodyParser = require('body-parser');
-  const handlebars = require('handlebars');
 
   const app = express();
-  app.use(bodyParser.json());
 
-  app.post('/api/render', (req, res) => {
-    const renderEvent = monitor.begin('render');
-    const template = handlebars.compile(req.body.template);
-    const result = template({ date: req.body.date });
-    monitor.end(renderEvent);
-    res.send(result);
+  app.get('/api/template', (req, res) => {
+    const templateReadEvent = monitor.begin('template-read');
+    fs.readFile(path.join(__dirname, 'index.handlebars'), (err, data) => {
+      monitor.end(templateReadEvent);
+      if (err) {
+        res.sendStatus(500);
+      } else {
+        res.send(data);
+      }
+    });
   });
-  app.listen(3002, () => console.log('Example render microservice listening on port 3002!'));
+  app.listen(3001, () => console.log('Example template microservice listening on port 3001!'));
 
 });
