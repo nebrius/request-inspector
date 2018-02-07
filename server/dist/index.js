@@ -28,12 +28,11 @@ const body_parser_1 = require("body-parser");
 const handlebars_1 = require("handlebars");
 const fs_1 = require("fs");
 const path_1 = require("path");
-const DEFAULT_PORT = 7176;
 const requests = [];
 function percent(min, value) {
     return Math.max(min, Math.round(100 * value));
 }
-function start({ port = DEFAULT_PORT }, cb) {
+function start({ port }, cb) {
     const app = express();
     app.use('/static', express.static(path_1.join(__dirname, '..', 'static')));
     app.use(body_parser_1.json());

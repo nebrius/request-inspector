@@ -11,6 +11,5 @@ export interface IMeasurementEvent {
 }
 export declare const EVENT_NAMES: {
     NODE_HTTP_SERVER_REQUEST: string;
-    NODE_HTTP_CLIENT_REQUEST: string;
 };
 export declare const HEADER_NAME = "x-request-inspector-request-ID";

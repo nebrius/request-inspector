@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,6 +23,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-require('../dist/index').start({ port: 8080 }, () => {
-  console.log('Request Inspector running');
+const server = require('../dist/index');
+
+const DEFAULT_PORT = 7176;
+
+const argv = require('yargs')
+  .command('request-inspector-server -p [port]', 'Start the Request Inspector server')
+  .option('port', {
+    alias: 'p',
+    default: DEFAULT_PORT
+  })
+  .argv;
+
+server.start({ port: argv.port }, () => {
+  console.log(`Request Inspector server listening on port ${argv.port}`);
 });

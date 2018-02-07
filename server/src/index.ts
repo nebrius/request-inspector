@@ -29,10 +29,8 @@ import { compile } from 'handlebars';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-const DEFAULT_PORT = 7176;
-
 export interface IOptions {
-  port?: number;
+  port: number;
 }
 
 interface IRequestEntry {
@@ -48,7 +46,7 @@ function percent(min: number, value: number): number {
   return Math.max(min, Math.round(100 * value));
 }
 
-export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): express.Express {
+export function start({ port }: IOptions, cb: () => void): express.Express {
 
   const app = express();
   app.use('/static', express.static(join(__dirname, '..', 'static')));
