@@ -18,7 +18,7 @@ correlates all of this data.
 
 Here is a screenshot showing the timeline working across three separate servers:
 
-![UI Screenshot](https://user-images.githubusercontent.com/1141386/35941734-154ac370-0c08-11e8-8c57-bd2c1703c44a.png)
+![UI Screenshot](https://user-images.githubusercontent.com/1141386/35941779-46e0bc46-0c08-11e8-9b4b-b8e65600d2ec.png)
 
 Be sure to [check out the example](./example).
 
