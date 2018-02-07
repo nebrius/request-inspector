@@ -36,6 +36,8 @@ Then install the instrumenter in your project:
 npm install @request-inspector/node-instrumenter
 ```
 
+**Warning:** the `@request-inspector/node-instrumenter` package _requires_ Node.js
+8.1.0 or newer to function, because older versions of Node.js don't support [async_hooks](https://nodejs.org/api/async_hooks.html).
 
 ## Usage
 
