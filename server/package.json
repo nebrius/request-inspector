@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "bin": {
-    "request-inspector": "node bin/cli.js"
+    "request-inspector": "bin/cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
