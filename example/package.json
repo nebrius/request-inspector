@@ -4,8 +4,7 @@
   "description": "An example application showing off Request Inspector",
   "main": "test.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node render-microservice.js && node app.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
