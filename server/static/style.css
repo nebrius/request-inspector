@@ -23,13 +23,28 @@ body {
 
 .details {
   padding: 5px;
-  width: 25%;
   border-right: 1px solid #555;
+  flex-grow: 5;
+  flex-basis: 0;
+  min-width: 200px;
+}
+
+.duration {
+  padding: 5px;
+  flex-grow: 1;
+  flex-basis: 0;
+  border-right: 1px solid #555;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .timeline {
   padding: 5px;
-  width: 75%;
+  flex-grow: 10;
+  flex-basis: 0;
   display: flex;
   align-items: center;
 }

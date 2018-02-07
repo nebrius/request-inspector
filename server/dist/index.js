@@ -38,8 +38,8 @@ function start({ port = DEFAULT_PORT }, cb) {
         const template = handlebars_1.compile(fs_1.readFileSync(path_1.join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
         res.send(template({ requests: requests.map((request) => {
                 const requestDuration = (request.events[0].end - request.events[0].start);
-                return Object.assign({}, request, { events: request.events.map((event) => {
-                        return Object.assign({}, event, { left: Math.round(100 * (event.start - request.events[0].start) / requestDuration), width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)) });
+                return Object.assign({}, request, { duration: requestDuration, events: request.events.map((event) => {
+                        return Object.assign({}, event, { duration: event.end - event.start, left: Math.round(100 * (event.start - request.events[0].start) / requestDuration), width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)) });
                     }) });
             }) }));
     });
@@ -60,6 +60,7 @@ function start({ port = DEFAULT_PORT }, cb) {
             requestEntry = {
                 requestId: event.requestId,
                 url: event.details.url,
+                duration: 0,
                 events: []
             };
             requests.push(requestEntry);

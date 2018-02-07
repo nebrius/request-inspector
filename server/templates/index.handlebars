@@ -8,21 +8,23 @@
     {{#each requests}}
       <div class="request">
         <div><h3>Request {{this.url}}</h3></div>
+        <div>Duration: {{this.duration}}ms</div>
         <div>
           <p>Events:</p>
           <div class="events-container">
           {{#each this.events}}
             <div class="event">
               <div class="details">
-                <div>name: {{this.name}}</div>
+                <div>{{this.name}}</div>
                 <div>
                   {{#each this.details}}
                       <div>{{@key}}: {{this}}</div>
                   {{/each}}
                 </div>
               </div>
+              <div class="duration">{{this.duration}}ms</div>
               <div class="timeline">
-                <div class="timeline-bar" style="margin-left: {{this.left}}%; width: {{this.width}}%;"></div>
+                <div class="timeline-bar" title="{{this.duration}}ms" style="margin-left: {{this.left}}%; width: {{this.width}}%;"></div>
               </div>
             </div>
           {{/each}}

@@ -24,8 +24,8 @@ SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVENT_NAMES = {
-    NODE_HTTP_SERVER_REQUEST: 'node:http.Server#on-request',
-    NODE_HTTP_CLIENT_REQUEST: 'node:http.Client#request'
+    NODE_HTTP_SERVER_REQUEST: 'node:Server-request',
+    NODE_HTTP_CLIENT_REQUEST: 'node:Client-request'
 };
 exports.HEADER_NAME = 'X-Request-Inspector-Request-ID';
 //# sourceMappingURL=common.js.map

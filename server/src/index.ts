@@ -38,6 +38,7 @@ export interface IOptions {
 interface IRequestEntry {
   requestId: string;
   url: string;
+  duration: number;
   events: IMeasurementEvent[];
 }
 
@@ -56,9 +57,11 @@ export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): expres
       const requestDuration = (request.events[0].end - request.events[0].start);
       return {
         ...request,
+        duration: requestDuration,
         events: request.events.map((event) => {
           return {
             ...event,
+            duration: event.end - event.start,
             left: Math.round(100 * (event.start - request.events[0].start) / requestDuration),
             width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)),
           };
@@ -85,6 +88,7 @@ export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): expres
       requestEntry = {
         requestId: event.requestId,
         url: event.details.url,
+        duration: 0,
         events: []
       };
       requests.push(requestEntry);
