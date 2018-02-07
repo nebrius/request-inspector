@@ -45,13 +45,26 @@ const requests: IRequestEntry[] = [];
 
 export function start({ port = DEFAULT_PORT }: IOptions, cb: () => void): express.Express {
 
-  const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
-
   const app = express();
+  app.use('/static', express.static(join(__dirname, '..', 'static')));
   app.use(json());
 
   app.get('/', (req, res) => {
-    res.send(template({ requests }));
+    const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
+
+    res.send(template({ requests: requests.map((request) => {
+      const requestDuration = (request.events[0].end - request.events[0].start);
+      return {
+        ...request,
+        events: request.events.map((event) => {
+          return {
+            ...event,
+            left: Math.round(100 * (event.start - request.events[0].start) / requestDuration),
+            width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)),
+          };
+        })
+      };
+    }) }));
   });
 
   app.get('/api/requests', (req, res) => {

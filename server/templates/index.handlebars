@@ -2,30 +2,33 @@
 <html>
   <head>
     <title>Request Inspector</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
   </head>
   <body>
-    <ul>
-      {{#each requests}}
+    {{#each requests}}
+      <div class="request">
+        <div><h3>Request {{this.url}}</h3></div>
         <div>
-          <div><h3>Request {{this.url}}</h3></div>
-          <div>
-            <p>Events:</p>
-            {{#each this.events}}
-              <div>
+          <p>Events:</p>
+          <div class="events-container">
+          {{#each this.events}}
+            <div class="event">
+              <div class="details">
                 <div>name: {{this.name}}</div>
-                <div>start: {{this.start}}</div>
-                <div>end: {{this.end}}</div>
                 <div>
                   {{#each this.details}}
                       <div>{{@key}}: {{this}}</div>
                   {{/each}}
                 </div>
               </div>
-              <br />
-            {{/each}}
+              <div class="timeline">
+                <div class="timeline-bar" style="margin-left: {{this.left}}%; width: {{this.width}}%;"></div>
+              </div>
+            </div>
+          {{/each}}
           </div>
         </div>
-      {{/each}}
-    </ul>
+      </div>
+    {{/each}}
   </body>
 </html>

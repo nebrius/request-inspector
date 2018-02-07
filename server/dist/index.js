@@ -31,11 +31,17 @@ const path_1 = require("path");
 const DEFAULT_PORT = 7176;
 const requests = [];
 function start({ port = DEFAULT_PORT }, cb) {
-    const template = handlebars_1.compile(fs_1.readFileSync(path_1.join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
     const app = express();
+    app.use('/static', express.static(path_1.join(__dirname, '..', 'static')));
     app.use(body_parser_1.json());
     app.get('/', (req, res) => {
-        res.send(template({ requests }));
+        const template = handlebars_1.compile(fs_1.readFileSync(path_1.join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
+        res.send(template({ requests: requests.map((request) => {
+                const requestDuration = (request.events[0].end - request.events[0].start);
+                return Object.assign({}, request, { events: request.events.map((event) => {
+                        return Object.assign({}, event, { left: Math.round(100 * (event.start - request.events[0].start) / requestDuration), width: Math.max(1, Math.round(100 * (event.end - event.start) / requestDuration)) });
+                    }) });
+            }) }));
     });
     app.get('/api/requests', (req, res) => {
         res.send(requests);
