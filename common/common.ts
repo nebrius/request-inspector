@@ -37,4 +37,4 @@ export const EVENT_NAMES = {
   NODE_HTTP_CLIENT_REQUEST: 'node:Client-request'
 };
 
-export const HEADER_NAME = 'X-Request-Inspector-Request-ID';
+export const HEADER_NAME = 'x-request-inspector-request-ID';

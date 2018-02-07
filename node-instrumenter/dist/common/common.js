@@ -27,5 +27,5 @@ exports.EVENT_NAMES = {
     NODE_HTTP_SERVER_REQUEST: 'node:Server-request',
     NODE_HTTP_CLIENT_REQUEST: 'node:Client-request'
 };
-exports.HEADER_NAME = 'X-Request-Inspector-Request-ID';
+exports.HEADER_NAME = 'x-request-inspector-request-ID';
 //# sourceMappingURL=common.js.map

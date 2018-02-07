@@ -47,7 +47,17 @@ function init(cb) {
     });
     asyncHook.enable();
     function requestHandler(req, res) {
-        const requestId = req.headers[common_1.HEADER_NAME] || uuid_1.v4();
+        let requestId = uuid_1.v4();
+        for (const headerName in req.headers) {
+            if (!req.headers.hasOwnProperty(headerName)) {
+                continue;
+            }
+            if (headerName.toLowerCase() === common_1.HEADER_NAME.toLowerCase()) {
+                requestId = req.headers[headerName];
+                break;
+            }
+        }
+        // TODO: need to associate this request as the root request if there's not already one, tie event id to request id
         registerRequestId(requestId);
         const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
             url: req.url,

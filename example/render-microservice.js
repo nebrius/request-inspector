@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 const monitor = require('../node-instrumenter/');
-monitor.init({ serverHostname: 'localhost', serverPort: 8080, serviceName: 'app' }, (initErr) => {
+monitor.init({ serverHostname: 'localhost', serverPort: 8080, serviceName: 'render' }, (initErr) => {
 
   if (initErr) {
     console.error(initErr);

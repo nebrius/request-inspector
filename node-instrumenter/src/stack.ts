@@ -52,7 +52,17 @@ export function init(cb: (err: Error | undefined) => void): void {
   asyncHook.enable();
 
   function requestHandler(req: http.IncomingMessage, res: http.ServerResponse): void {
-    const requestId = req.headers[HEADER_NAME] as string || uuid();
+    let requestId = uuid();
+    for (const headerName in req.headers) {
+      if (!req.headers.hasOwnProperty(headerName)) {
+        continue;
+      }
+      if (headerName.toLowerCase() === HEADER_NAME.toLowerCase()) {
+        requestId = req.headers[headerName] as string;
+        break;
+      }
+    }
+    // TODO: need to associate this request as the root request if there's not already one, tie event id to request id
     registerRequestId(requestId);
     const measurementEvent = begin(EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
       url: req.url,
