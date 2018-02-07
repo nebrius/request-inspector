@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const monitor = require('../node-instrumenter/');
+const monitor = require('@request-inspector/node-instrumenter');
 monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'app' }, (initErr) => {
 
   if (initErr) {
