@@ -81,6 +81,24 @@ function init(cb) {
         }
         return server;
     };
+    const oldHttpRequest = http.request;
+    http.request = function request(options, responseListener) {
+        const req = oldHttpRequest.call(this, options, responseListener);
+        const requestId = getCurrentRequestId();
+        if (requestId) {
+            req.setHeader(common_1.HEADER_NAME, requestId);
+        }
+        return req;
+    };
+    const oldHttpsRequest = http.request;
+    https.request = function request(options, responseListener) {
+        const req = oldHttpsRequest.call(this, options, responseListener);
+        const requestId = getCurrentRequestId();
+        if (requestId) {
+            req.setHeader(common_1.HEADER_NAME, requestId);
+        }
+        return req;
+    };
     setImmediate(cb);
 }
 exports.init = init;

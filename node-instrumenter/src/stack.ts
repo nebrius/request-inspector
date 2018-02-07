@@ -89,6 +89,26 @@ export function init(cb: (err: Error | undefined) => void): void {
     return server;
   };
 
+  const oldHttpRequest = http.request;
+  http.request = function request(options, responseListener) {
+    const req: http.ClientRequest = oldHttpRequest.call(this, options, responseListener);
+    const requestId = getCurrentRequestId();
+    if (requestId) {
+      req.setHeader(HEADER_NAME, requestId);
+    }
+    return req;
+  };
+
+  const oldHttpsRequest = http.request;
+  https.request = function request(options, responseListener) {
+    const req: http.ClientRequest = oldHttpsRequest.call(this, options, responseListener);
+    const requestId = getCurrentRequestId();
+    if (requestId) {
+      req.setHeader(HEADER_NAME, requestId);
+    }
+    return req;
+  };
+
   setImmediate(cb);
 }
 
