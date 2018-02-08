@@ -26,7 +26,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const continuation_local_storage_1 = require("continuation-local-storage");
 const event_1 = require("./event");
 const common_1 = require("./common/common");
-const uuid_1 = require("uuid");
 const http = require("http");
 const https = require("https");
 const requestNamespace = continuation_local_storage_1.createNamespace('request');
@@ -36,17 +35,15 @@ function init(cb) {
             requestNamespace.run(() => {
                 requestNamespace.bindEmitter(req);
                 requestNamespace.bindEmitter(res);
-                let requestId = uuid_1.v4();
                 for (const headerName in req.headers) {
                     if (!req.headers.hasOwnProperty(headerName)) {
                         continue;
                     }
                     if (headerName.toLowerCase() === common_1.HEADER_NAME.toLowerCase()) {
-                        requestId = req.headers[headerName];
+                        requestNamespace.set('requestId', req.headers[headerName]);
                         break;
                     }
                 }
-                requestNamespace.set('requestId', requestId);
                 listener.apply(this, arguments);
             });
         }
@@ -66,6 +63,9 @@ function init(cb) {
         }
     }
     function requestHandler(req, res) {
+        if (!getCurrentRequestId()) {
+            return;
+        }
         const measurementEvent = event_1.begin(common_1.EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
             url: req.url,
             method: req.method,

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function loadContent() {
+  fetch('/api/content').then(function(response) {
+    return response.text();
+  }).then(function(content) {
+    const iframe = document.getElementById('contentFrame');
+    iframe.srcdoc = content;
+  });
+}
+</script>
+<script src="/request_inspector.js"></script>
+<script>
+  console.log('initializing');
+  window.requestInspector.init({
+    serverHostname: 'localhost',
+    serverPort: 7167,
+    serviceName: 'browser',
+  });
+</script>
+</head>
+<body>
+  <div>
+    <button onclick="loadContent()">Click to load the content</button>
+  </div>
+  <iframe id="contentFrame" />
+</body>
+</html>

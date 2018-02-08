@@ -40,7 +40,7 @@ monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'temp
 
   app.get('/api/template', (req, res) => {
     const templateReadEvent = monitor.begin('template-read');
-    fs.readFile(path.join(__dirname, 'index.handlebars'), (err, data) => {
+    fs.readFile(path.join(__dirname, 'template.handlebars'), (err, data) => {
       monitor.end(templateReadEvent);
       if (err) {
         res.sendStatus(500);

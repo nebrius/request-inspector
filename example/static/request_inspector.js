@@ -1,0 +1,1 @@
+../../browser-instrumenter/dist/bundle.js

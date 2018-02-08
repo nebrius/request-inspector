@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 const monitor = require('@request-inspector/node-instrumenter');
-monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'app' }, (initErr) => {
+monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'api' }, (initErr) => {
 
   if (initErr) {
     console.error(initErr);
@@ -33,12 +33,14 @@ monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'app'
 
   const http = require('http');
   const fs = require('fs');
+  const path = require('path');
   const express = require('express');
   const request = require('request');
 
   const app = express();
+  app.use(express.static(path.join(__dirname, 'static')));
 
-  app.get('/', (req, res) => {
+  app.get('/api/content', (req, res) => {
     const templateRequestEvent = monitor.begin('template-request');
     request('http://localhost:3001/api/template', (templateErr, templateRes, templateBody) => {
       if (templateErr || templateRes.statusCode >= 400) {
@@ -66,5 +68,4 @@ monitor.init({ serverHostname: 'localhost', serverPort: 7176, serviceName: 'app'
     });
   });
   app.listen(3000, () => console.log('Example app listening on port 3000!'));
-
 });

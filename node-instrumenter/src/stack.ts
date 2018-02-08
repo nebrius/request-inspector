@@ -26,7 +26,6 @@ import { createNamespace } from 'continuation-local-storage';
 import { EventEmitter } from 'events';
 import { begin, end } from './event';
 import { EVENT_NAMES, HEADER_NAME } from './common/common';
-import { v4 as uuid } from 'uuid';
 
 import http = require('http');
 import https = require('https');
@@ -42,17 +41,15 @@ export function init(cb: (err: Error | undefined) => void): void {
       requestNamespace.run(() => {
         requestNamespace.bindEmitter(req);
         requestNamespace.bindEmitter(res);
-        let requestId = uuid();
         for (const headerName in req.headers) {
           if (!req.headers.hasOwnProperty(headerName)) {
             continue;
           }
           if (headerName.toLowerCase() === HEADER_NAME.toLowerCase()) {
-            requestId = req.headers[headerName] as string;
+            requestNamespace.set('requestId', req.headers[headerName] as string);
             break;
           }
         }
-        requestNamespace.set('requestId', requestId);
         listener.apply(this, arguments);
       });
     }
@@ -75,6 +72,9 @@ export function init(cb: (err: Error | undefined) => void): void {
   }
 
   function requestHandler(req: http.IncomingMessage, res: http.ServerResponse): void {
+    if (!getCurrentRequestId()) {
+      return;
+    }
     const measurementEvent = begin(EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
       url: req.url,
       method: req.method,

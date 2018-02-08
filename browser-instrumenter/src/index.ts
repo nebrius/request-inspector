@@ -25,33 +25,58 @@ SOFTWARE.
 import { HEADER_NAME } from './common/common';
 import { v4 as uuid } from 'uuid';
 
-export function init(): void {
-  // TODO
+export interface IOptions {
+  serverHostname: string;
+  serverPort: number;
+  serviceName: string;
 }
 
-if (window.fetch) {
-  const oldFetch = window.fetch;
-  window.fetch = function fetch(input: string | Request, fetchInit?: RequestInit): Promise<Response> {
-    const requestId = uuid();
-    if (fetchInit) {
-      if (fetchInit.headers) {
-        if (fetchInit.headers instanceof Headers) {
-          fetchInit.headers.set(HEADER_NAME, requestId);
+export function init(options: IOptions): void {
+
+  function begin() {
+    console.log('begin');
+  }
+
+  function end() {
+    console.log('end');
+  }
+
+  // Patch fetch
+  if (window.fetch) {
+    const oldFetch = window.fetch;
+    window.fetch = function fetch(input: string | Request, fetchInit?: RequestInit): Promise<Response> {
+      const requestId = uuid();
+      if (fetchInit) {
+        if (fetchInit.headers) {
+          if (fetchInit.headers instanceof Headers) {
+            fetchInit.headers.set(HEADER_NAME, requestId);
+          } else {
+            (fetchInit.headers as any)[HEADER_NAME] = requestId;
+          }
         } else {
-          (fetchInit.headers as any)[HEADER_NAME] = requestId;
+          fetchInit.headers = {
+            [HEADER_NAME]: requestId
+          };
         }
       } else {
-        fetchInit.headers = {
-          [HEADER_NAME]: requestId
+        fetchInit = {
+          headers: {
+            [HEADER_NAME]: requestId
+          }
         };
       }
-    } else {
-      fetchInit = {
-        headers: {
-          [HEADER_NAME]: requestId
-        }
-      };
-    }
-    return oldFetch(input, fetchInit);
-  };
+      begin();
+      const req = oldFetch(input, fetchInit);
+      req.then((response) => {
+        end();
+        return response;
+      });
+      return req;
+    };
+  }
+
 }
+
+(window as any).requestInspector = {
+  init
+};
