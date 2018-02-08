@@ -41,7 +41,7 @@ interface IRequestEntry {
 }
 
 const requests: IRequestEntry[] = [];
-const services: IService[] = [];
+const services: { [ serviceId: string ]: string } = {};
 
 function percent(min: number, value: number): number {
   return Math.max(min, Math.round(100 * value));
@@ -69,6 +69,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
           events: request.events.map((event) => {
             return {
               ...event,
+              serviceName: services[event.serviceId],
               duration: event.end - event.start,
               durationValid: typeof event.end === 'number',
               left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0,
@@ -90,7 +91,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
   app.post('/api/register', (req, res) => {
     const service: IService = req.body;
     console.log(`Registering service "${service.serviceName}"`);
-    services.push(service);
+    services[service.serviceId] = service.serviceName;
     res.send('ok');
   });
 

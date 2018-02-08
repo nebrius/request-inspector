@@ -25,7 +25,7 @@
           {{#each this.events}}
             <div class="event" title="Duration: {{this.duration}}ms&#013;{{#each this.details}}&#013;{{@key}}: {{this}}{{/each}}" >
               <div class="name">{{this.type}}</div>
-              <div class="service">{{this.serviceId}}</div>
+              <div class="service">{{this.serviceName}}</div>
               {{#if this.durationValid}}
               <div class="duration">{{this.duration}}ms</div>
               {{else}}

@@ -29,7 +29,7 @@ const handlebars_1 = require("handlebars");
 const fs_1 = require("fs");
 const path_1 = require("path");
 const requests = [];
-const services = [];
+const services = {};
 function percent(min, value) {
     return Math.max(min, Math.round(100 * value));
 }
@@ -45,7 +45,7 @@ function start({ port }, cb) {
                 const requreDurationValid = typeof request.events[0].start === 'number' &&
                     typeof request.events[0].end === 'number';
                 return Object.assign({}, request, { duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
-                        return Object.assign({}, event, { duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
+                        return Object.assign({}, event, { serviceName: services[event.serviceId], duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
                     }) });
             })
         }));
@@ -59,7 +59,7 @@ function start({ port }, cb) {
     app.post('/api/register', (req, res) => {
         const service = req.body;
         console.log(`Registering service "${service.serviceName}"`);
-        services.push(service);
+        services[service.serviceId] = service.serviceName;
         res.send('ok');
     });
     app.post('/api/events', (req, res) => {
