@@ -8,14 +8,13 @@
     {{#each requests}}
       <div class="request">
         <div><h3>Request {{this.url}}</h3></div>
-        <div>Request ID: ${{this.requestId}}</div>
+        <div>Request Start Time: {{this.start}}</div>
         {{#if this.durationValid}}
         <div>Duration: {{this.duration}}ms</div>
         {{else}}
         <div>Duration: -</div>
         {{/if}}
         <div>
-          <p>Events:</p>
           <div class="events-container">
             <div class="event" >
               <div class="name header">Type</div>

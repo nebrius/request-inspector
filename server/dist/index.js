@@ -44,7 +44,7 @@ function start({ port }, cb) {
                 const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
                 const requreDurationValid = typeof request.events[0].start === 'number' &&
                     typeof request.events[0].end === 'number';
-                return Object.assign({}, request, { duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
+                return Object.assign({}, request, { start: (new Date(request.events[0].start)).toString(), duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
                         return Object.assign({}, event, { serviceName: services[event.serviceId], duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
                     }) });
             })
@@ -92,6 +92,7 @@ function start({ port }, cb) {
         if (!existingEventUpdated) {
             requestEntry.events.push(event);
         }
+        requestEntry.events.sort((a, b) => a.start - b.start);
         res.send('OK');
     });
     app.listen(port, cb);

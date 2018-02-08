@@ -64,6 +64,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
           typeof request.events[0].end === 'number';
         return {
           ...request,
+          start: (new Date(request.events[0].start)).toString(),
           duration: requestDuration,
           durationValid: requreDurationValid,
           events: request.events.map((event) => {
@@ -125,6 +126,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
     if (!existingEventUpdated) {
       requestEntry.events.push(event);
     }
+    requestEntry.events.sort((a, b) => a.start - b.start);
     res.send('OK');
   });
 
