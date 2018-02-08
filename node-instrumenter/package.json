@@ -26,6 +26,7 @@
   "homepage": "https://github.com/nebrius/request-inspector#readme",
   "devDependencies": {
     "@types/async": "^2.0.47",
+    "@types/continuation-local-storage": "^3.2.1",
     "@types/node": "^9.4.0",
     "@types/request": "^2.47.0",
     "@types/uuid": "^3.4.3",
@@ -36,10 +37,8 @@
   },
   "dependencies": {
     "async": "^2.6.0",
+    "continuation-local-storage": "^3.2.1",
     "request": "^2.83.0",
     "uuid": "^3.2.1"
-  },
-  "engines": {
-    "node": ">=8.1.0"
   }
 }

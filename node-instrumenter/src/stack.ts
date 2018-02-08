@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { createHook, executionAsyncId as getExecutionAsyncId } from 'async_hooks';
+import { createNamespace } from 'continuation-local-storage';
+import { EventEmitter } from 'events';
 import { begin, end } from './event';
 import { EVENT_NAMES, HEADER_NAME } from './common/common';
 import { v4 as uuid } from 'uuid';
@@ -32,39 +33,48 @@ import https = require('https');
 
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
-const relationships: { [ triggerId: number ]: number } = {};
-const requests: { [ requestId: string ]: string } = {};
-let isInitialized = false;
-
-let rootContextPath: string;
+const requestNamespace = createNamespace('request');
 
 export function init(cb: (err: Error | undefined) => void): void {
-  const asyncHook = createHook({
-    init: (executionAsyncId, type, triggerAsyncId, resource) => {
-      if (relationships.hasOwnProperty(executionAsyncId)) {
-        if (relationships[executionAsyncId] !== triggerAsyncId) {
-          throw new Error('Inconsistent relationship');
+
+  function wrapListener(listener: any): any {
+    function wrappedListener(req: http.IncomingMessage, res: http.ServerResponse) {
+      requestNamespace.run(() => {
+        requestNamespace.bindEmitter(req);
+        requestNamespace.bindEmitter(res);
+        let requestId = uuid();
+        for (const headerName in req.headers) {
+          if (!req.headers.hasOwnProperty(headerName)) {
+            continue;
+          }
+          if (headerName.toLowerCase() === HEADER_NAME.toLowerCase()) {
+            requestId = req.headers[headerName] as string;
+            break;
+          }
         }
-      } else {
-        relationships[executionAsyncId] = triggerAsyncId;
-      }
+        requestNamespace.set('requestId', requestId);
+        listener.apply(this, arguments);
+      });
     }
-  });
-  asyncHook.enable();
+    return wrappedListener;
+  }
+
+  function patchRequestHandler(server: any, defaultHandler?: RequestHandler): void {
+    const oldOn = server.on;
+    server.on = function on(eventName: string, listener: any): EventEmitter {
+      if (eventName === 'request') {
+        listener = wrapListener(listener);
+      }
+      return oldOn.call(this, eventName, listener);
+    };
+
+    server.on('request', requestHandler);
+    if (defaultHandler) {
+      server.on('request', defaultHandler);
+    }
+  }
 
   function requestHandler(req: http.IncomingMessage, res: http.ServerResponse): void {
-    let requestId = uuid();
-    for (const headerName in req.headers) {
-      if (!req.headers.hasOwnProperty(headerName)) {
-        continue;
-      }
-      if (headerName.toLowerCase() === HEADER_NAME.toLowerCase()) {
-        requestId = req.headers[headerName] as string;
-        break;
-      }
-    }
-    // TODO: need to associate this request as the root request if there's not already one, tie event id to request id
-    registerRequestId(requestId);
     const measurementEvent = begin(EVENT_NAMES.NODE_HTTP_SERVER_REQUEST, {
       url: req.url,
       method: req.method,
@@ -79,10 +89,7 @@ export function init(cb: (err: Error | undefined) => void): void {
   const oldHttpCreateServer = http.createServer;
   http.createServer = function createServer(handler?: RequestHandler): http.Server {
     const server = oldHttpCreateServer.call(this);
-    server.on('request', requestHandler);
-    if (handler) {
-      server.on('request', handler);
-    }
+    patchRequestHandler(server, handler);
     return server;
   };
 
@@ -93,10 +100,7 @@ export function init(cb: (err: Error | undefined) => void): void {
       options = undefined;
     }
     const server = oldHttpsCreateServer.call(this, options);
-    server.on('request', requestHandler);
-    if (handler) {
-      server.on('request', handler);
-    }
+    patchRequestHandler(server, handler);
     return server;
   };
 
@@ -120,49 +124,9 @@ export function init(cb: (err: Error | undefined) => void): void {
     return req;
   };
 
-  isInitialized = true;
-  rootContextPath = getContextPath();
   setImmediate(cb);
 }
 
-export function registerRequestId(requestId: string): void {
-  if (!isInitialized) {
-    throw new Error('Cannot call "registerRequestId" until the event system is initialized');
-  }
-  const contextPath = getContextPath();
-  if (rootContextPath === contextPath) {
-    throw new Error('Attempted to register a request in the root context');
-  }
-  requests[requestId] = getContextPath();
-}
-
 export function getCurrentRequestId(): string | undefined {
-  if (!isInitialized) {
-    throw new Error('Cannot call "getCurrentRequestId" until the event system is initialized');
-  }
-  const contextPath = getContextPath();
-  for (const requestId in requests) {
-    if (!requests.hasOwnProperty(requestId)) {
-      continue;
-    }
-    if (contextPath.startsWith(requests[requestId])) {
-      return requestId;
-    }
-  }
-  return;
-}
-
-export function getContextPath(): string {
-  if (!isInitialized) {
-    throw new Error('Cannot call "getContextPath" until the event system is initialized');
-  }
-  const executionAsyncId = getExecutionAsyncId();
-  function findRoot(execId: number): number[] {
-    if (!relationships.hasOwnProperty(execId)) {
-      return [ execId ];
-    } else {
-      return findRoot(relationships[execId]).concat([ execId ]);
-    }
-  }
-  return findRoot(executionAsyncId).join('/');
+  return requestNamespace.get('requestId');
 }
