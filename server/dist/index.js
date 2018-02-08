@@ -28,6 +28,7 @@ const body_parser_1 = require("body-parser");
 const handlebars_1 = require("handlebars");
 const fs_1 = require("fs");
 const path_1 = require("path");
+const cors = require("cors");
 const requests = [];
 const services = {};
 function percent(min, value) {
@@ -37,11 +38,23 @@ function start({ port }, cb) {
     const app = express();
     app.use('/static', express.static(path_1.join(__dirname, '..', 'static')));
     app.use(body_parser_1.json());
+    app.use(cors());
     app.get('/', (req, res) => {
         const template = handlebars_1.compile(fs_1.readFileSync(path_1.join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
         res.send(template({
             requests: requests.map((request) => {
-                const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
+                let rootEvent;
+                for (const event of request.events) {
+                    if (event.eventId === request.requestId) {
+                        rootEvent = event;
+                        break;
+                    }
+                }
+                if (!rootEvent) {
+                    console.warn(`Internall Error: Could not find the root event for request ${request.requestId}`);
+                    return;
+                }
+                const requestDuration = Math.max(0, (rootEvent.end - rootEvent.start));
                 const requreDurationValid = typeof request.events[0].start === 'number' &&
                     typeof request.events[0].end === 'number';
                 return Object.assign({}, request, { start: (new Date(request.events[0].start)).toString(), duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {

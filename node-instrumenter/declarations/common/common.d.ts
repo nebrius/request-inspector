@@ -15,5 +15,6 @@ export interface IService {
 }
 export declare const EVENT_NAMES: {
     NODE_HTTP_SERVER_REQUEST: string;
+    BROWSER_HTTP_CLIENT_REQUEST: string;
 };
 export declare const HEADER_NAME = "x-request-inspector-request-ID";

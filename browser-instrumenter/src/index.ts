@@ -22,8 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { HEADER_NAME } from './common/common';
+import { HEADER_NAME, EVENT_NAMES, IMeasurementEvent, IService } from './common/common';
 import { v4 as uuid } from 'uuid';
+
+const serviceId = uuid();
 
 export interface IOptions {
   serverHostname: string;
@@ -31,15 +33,12 @@ export interface IOptions {
   serviceName: string;
 }
 
-export function init(options: IOptions): void {
+let options: IOptions;
+let isInitialized = false;
 
-  function begin() {
-    console.log('begin');
-  }
+export function init(newOptions: IOptions, cb?: (err: Error | undefined) => void): void {
 
-  function end() {
-    console.log('end');
-  }
+  options = newOptions;
 
   // Patch fetch
   if (window.fetch) {
@@ -65,18 +64,84 @@ export function init(options: IOptions): void {
           }
         };
       }
-      begin();
+      const beginEvent = begin(requestId, EVENT_NAMES.BROWSER_HTTP_CLIENT_REQUEST, {
+        url: typeof input === 'string' ? input : input.url
+      });
       const req = oldFetch(input, fetchInit);
       req.then((response) => {
-        end();
+        end(beginEvent);
         return response;
       });
       return req;
     };
   }
 
+  // Register with the server
+  const service: IService = {
+    serviceId,
+    serviceName: 'client'
+  };
+  const registerReq = new XMLHttpRequest();
+  registerReq.open('POST', `http://${options.serverHostname}:${options.serverPort}/api/register`);
+  registerReq.addEventListener('load', () => {
+    isInitialized = true;
+    if (cb) {
+      cb(undefined);
+    }
+  });
+  registerReq.addEventListener('error', (e) => cb && cb(e.error));
+  registerReq.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  registerReq.send(JSON.stringify(service));
+}
+
+function sendEvent(event: IMeasurementEvent): void {
+  const req = new XMLHttpRequest();
+  req.open('POST', `http://${options.serverHostname}:${options.serverPort}/api/events`);
+  req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  req.send(JSON.stringify(event));
+}
+
+function begin(requestId: string, type: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
+  if (!isInitialized) {
+    throw new Error('"begin" was called before Request Inspector was finished initializing');
+  }
+  if (typeof type !== 'string') {
+    throw new Error('"name" must be a string');
+  }
+  if (!requestId) {
+    throw new Error('Internal Error: could not get request ID. ' +
+      'This is a bug in Request Inspector, please report it to the author.');
+  }
+  const newEntry: IMeasurementEvent = {
+    eventId: requestId,
+    serviceId,
+    requestId,
+    type,
+    start: Date.now(),
+    end: NaN,
+    details
+  };
+  sendEvent(newEntry);
+  return newEntry;
+}
+
+function end(event: IMeasurementEvent, details: { [ key: string ]: any } = {}): void {
+  if (!isInitialized) {
+    throw new Error('"begin" was called before Request Inspector was finished initializing');
+  }
+  if (!isNaN(event.end)) {
+    throw new Error(`"end" called twice for ${event.type}:${event.eventId}`);
+  }
+  event.end = Date.now();
+  event.details = {
+    ...event.details,
+    ...details
+  };
+  sendEvent(event);
 }
 
 (window as any).requestInspector = {
-  init
+  init,
+  begin,
+  end
 };

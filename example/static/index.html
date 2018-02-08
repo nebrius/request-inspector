@@ -16,9 +16,9 @@ function loadContent() {
   console.log('initializing');
   window.requestInspector.init({
     serverHostname: 'localhost',
-    serverPort: 7167,
+    serverPort: 7176,
     serviceName: 'browser',
-  });
+  }, () => {});
 </script>
 </head>
 <body>

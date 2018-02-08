@@ -38,7 +38,8 @@ export interface IService {
 }
 
 export const EVENT_NAMES = {
-  NODE_HTTP_SERVER_REQUEST: 'builtin:node:server-request'
+  NODE_HTTP_SERVER_REQUEST: 'builtin:node:server-request',
+  BROWSER_HTTP_CLIENT_REQUEST: 'builtin:browser:client-request'
 };
 
 export const HEADER_NAME = 'x-request-inspector-request-ID';

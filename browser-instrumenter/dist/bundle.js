@@ -159,16 +159,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var common_1 = __webpack_require__(3);
 var uuid_1 = __webpack_require__(4);
-function init(options) {
-    function begin() {
-        console.log('begin');
-    }
-    function end() {
-        console.log('end');
-    }
+var serviceId = uuid_1.v4();
+var options;
+var isInitialized = false;
+function init(newOptions, cb) {
+    options = newOptions;
     // Patch fetch
     if (window.fetch) {
         var oldFetch_1 = window.fetch;
@@ -196,20 +202,82 @@ function init(options) {
                         _b)
                 };
             }
-            begin();
+            var beginEvent = begin(requestId, common_1.EVENT_NAMES.BROWSER_HTTP_CLIENT_REQUEST, {
+                url: typeof input === 'string' ? input : input.url
+            });
             var req = oldFetch_1(input, fetchInit);
             req.then(function (response) {
-                end();
+                end(beginEvent);
                 return response;
             });
             return req;
             var _a, _b;
         };
     }
+    // Register with the server
+    var service = {
+        serviceId: serviceId,
+        serviceName: 'client'
+    };
+    var registerReq = new XMLHttpRequest();
+    registerReq.open('POST', "http://" + options.serverHostname + ":" + options.serverPort + "/api/register");
+    registerReq.addEventListener('load', function () {
+        isInitialized = true;
+        if (cb) {
+            cb(undefined);
+        }
+    });
+    registerReq.addEventListener('error', function (e) { return cb && cb(e.error); });
+    registerReq.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    registerReq.send(JSON.stringify(service));
 }
 exports.init = init;
+function sendEvent(event) {
+    var req = new XMLHttpRequest();
+    req.open('POST', "http://" + options.serverHostname + ":" + options.serverPort + "/api/events");
+    req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    req.send(JSON.stringify(event));
+}
+function begin(requestId, type, details) {
+    if (details === void 0) { details = {}; }
+    if (!isInitialized) {
+        throw new Error('"begin" was called before Request Inspector was finished initializing');
+    }
+    if (typeof type !== 'string') {
+        throw new Error('"name" must be a string');
+    }
+    if (!requestId) {
+        throw new Error('Internal Error: could not get request ID. ' +
+            'This is a bug in Request Inspector, please report it to the author.');
+    }
+    var newEntry = {
+        eventId: requestId,
+        serviceId: serviceId,
+        requestId: requestId,
+        type: type,
+        start: Date.now(),
+        end: NaN,
+        details: details
+    };
+    sendEvent(newEntry);
+    return newEntry;
+}
+function end(event, details) {
+    if (details === void 0) { details = {}; }
+    if (!isInitialized) {
+        throw new Error('"begin" was called before Request Inspector was finished initializing');
+    }
+    if (!isNaN(event.end)) {
+        throw new Error("\"end\" called twice for " + event.type + ":" + event.eventId);
+    }
+    event.end = Date.now();
+    event.details = __assign({}, event.details, details);
+    sendEvent(event);
+}
 window.requestInspector = {
-    init: init
+    init: init,
+    begin: begin,
+    end: end
 };
 
 
@@ -244,7 +312,8 @@ SOFTWARE.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVENT_NAMES = {
-    NODE_HTTP_SERVER_REQUEST: 'builtin:node:server-request'
+    NODE_HTTP_SERVER_REQUEST: 'builtin:node:server-request',
+    BROWSER_HTTP_CLIENT_REQUEST: 'builtin:browser:client-request'
 };
 exports.HEADER_NAME = 'x-request-inspector-request-ID';
 

@@ -28,6 +28,7 @@ import { IMeasurementEvent, IService } from './common/common';
 import { compile } from 'handlebars';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import * as cors from 'cors';
 
 export interface IOptions {
   port: number;
@@ -52,19 +53,31 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
   const app = express();
   app.use('/static', express.static(join(__dirname, '..', 'static')));
   app.use(json());
+  app.use(cors());
 
   app.get('/', (req, res) => {
     const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
-
     res.send(template({
       requests: requests.map((request) => {
-        const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
+
+        let rootEvent: IMeasurementEvent | undefined;
+        for (const event of request.events) {
+          if (event.eventId === request.requestId) {
+            rootEvent = event;
+            break;
+          }
+        }
+        if (!rootEvent) {
+          console.warn(`Internall Error: Could not find the root event for request ${request.requestId}`);
+          return;
+        }
+        const requestDuration = Math.max(0, (rootEvent.end - rootEvent.start));
         const requreDurationValid =
-          typeof request.events[0].start === 'number' &&
-          typeof request.events[0].end === 'number';
+          typeof rootEvent.start === 'number' &&
+          typeof rootEvent.end === 'number';
         return {
           ...request,
-          start: (new Date(request.events[0].start)).toString(),
+          start: (new Date(rootEvent.start)).toString(),
           duration: requestDuration,
           durationValid: requreDurationValid,
           events: request.events.map((event) => {
@@ -73,7 +86,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
               serviceName: services[event.serviceId],
               duration: event.end - event.start,
               durationValid: typeof event.end === 'number',
-              left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0,
+              left: requreDurationValid ? percent(0, (event.start - rootEvent.start) / requestDuration) : 0,
               width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0,
             };
           })
