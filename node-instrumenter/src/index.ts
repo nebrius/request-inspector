@@ -23,8 +23,9 @@ SOFTWARE.
 */
 
 import { init as stackInit } from './stack';
-import { setServerConnection } from './messaging';
-import { setServiceName } from './event';
+import { init as messagingInit } from './messaging';
+import { init as eventInit } from './event';
+import { parallel } from 'async';
 
 export { IMeasurementEvent } from './common/common';
 export { isInRequestContext, begin, end } from './event';
@@ -56,7 +57,10 @@ export function init(options: IOptions, cb?: Callback): void {
   if (typeof serviceName !== 'string') {
     throw new Error('"serviceName" option must be a string');
   }
-  setServerConnection(serverHostname, serverPort);
-  setServiceName(serviceName);
-  stackInit(cb);
+
+  parallel([
+    (next) => stackInit(next),
+    (next) => messagingInit(serverHostname, serverPort, serviceName, next),
+    (next) => eventInit(next)
+  ], cb);
 }

@@ -1,7 +1,7 @@
 import { IMeasurementEvent } from './common/common';
-export declare function setServiceName(newName: string): void;
+export declare function init(cb: (err: Error | undefined) => void): void;
 export declare function isInRequestContext(): boolean;
-export declare function begin(name: string, details?: {
+export declare function begin(type: string, details?: {
     [key: string]: any;
 }): IMeasurementEvent;
 export declare function end(event: IMeasurementEvent, details?: {

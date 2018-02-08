@@ -25,19 +25,19 @@ SOFTWARE.
 import { v4 as uuid } from 'uuid';
 import { getCurrentRequestId } from './stack';
 import { IMeasurementEvent } from './common/common';
-import { storeEvent } from './messaging';
+import { storeEvent, getServiceId } from './messaging';
 
-let serviceName: string;
-export function setServiceName(newName: string) {
-  serviceName = newName;
+export function init(cb: (err: Error | undefined) => void): void {
+  // Nothing to do, yet?
+  setImmediate(cb);
 }
 
 export function isInRequestContext(): boolean {
   return !!getCurrentRequestId();
 }
 
-export function begin(name: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
-  if (typeof name !== 'string') {
+export function begin(type: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
+  if (typeof type !== 'string') {
     throw new Error('"name" must be a string');
   }
   if (!isInRequestContext()) {
@@ -49,10 +49,10 @@ export function begin(name: string, details: { [ key: string ]: any } = {}): IMe
       'This is a bug in Request Inspector, please report it to the author.');
   }
   const newEntry: IMeasurementEvent = {
-    serviceName,
-    id: uuid(),
+    eventId: uuid(),
+    serviceId: getServiceId(),
     requestId,
-    name,
+    type,
     start: Date.now(),
     end: NaN,
     details
@@ -63,7 +63,7 @@ export function begin(name: string, details: { [ key: string ]: any } = {}): IMe
 
 export function end(event: IMeasurementEvent, details: { [ key: string ]: any } = {}): void {
   if (!isNaN(event.end)) {
-    throw new Error(`"end" called twice for ${event.name}`);
+    throw new Error(`"end" called twice for ${event.type}:${event.eventId}`);
   }
   event.end = Date.now();
   event.details = {

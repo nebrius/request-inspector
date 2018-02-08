@@ -22,47 +22,69 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { IMeasurementEvent } from './common/common';
-import { request, ServerResponse } from 'http';
+import { IMeasurementEvent, IService } from './common/common';
+import * as request from 'request';
+import { v4 as uuid } from 'uuid';
 
 let hostname: string;
 let port: number;
+let serviceId: string;
+let isInitialized = false;
 
-export function setServerConnection(newHostname: string, newPort: number) {
+export function init(
+  newHostname: string,
+  newPort: number,
+  serviceName: string,
+  cb: (err: Error | undefined) => void
+): void {
   hostname = newHostname;
   port = newPort;
+  serviceId = uuid();
+
+  const service: IService = {
+    serviceName,
+    serviceId
+  };
+
+  request({
+    url: `http://${hostname}:${port}/api/register`,
+    json: true,
+    body: service,
+    method: 'POST'
+  }, (err, res, body) => {
+    if (err) {
+      cb(err);
+    } else if (!res.statusCode) {
+      cb(new Error('Request Inspector: could not register with the Request Inspector server'));
+    } else if (res.statusCode >= 400) {
+      cb(new Error(`Request Inspector: Request Inspector server returned ${res.statusCode} while trying to register`));
+    } else {
+      isInitialized = true;
+      cb(undefined);
+    }
+  });
+}
+
+export function getServiceId(): string {
+  return serviceId;
 }
 
 export function storeEvent(event: IMeasurementEvent): void {
-
-  if (!hostname || !port) {
-    throw new Error('Cannot store event before the server hostname and port are set');
+  if (!isInitialized) {
+    throw new Error('Cannot call "storeEvent" until the event system is initialized');
   }
-
-  const data = JSON.stringify(event);
-
-  const req = (request as any)({
-    protocol: 'http:',
-    hostname,
-    port,
-    path: `/api/events`,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data)
-    }
-  }, (res: ServerResponse) => {
-    if (!res.statusCode) {
+  request({
+    url: `http://${hostname}:${port}/api/events`,
+    json: true,
+    body: event,
+    method: 'POST'
+  }, (err, res, body) => {
+    if (err) {
+      console.warn(`Request Inspector: error saving event to the server: ${err}`);
+    } else if (!res.statusCode) {
       console.warn('Request Inspector: received no status code from the Request Inspector server');
     } else if (res.statusCode >= 400) {
-      console.warn(`Request Inspector: Request Inspector server returned ${res.statusCode}`);
+      console.warn(`Request Inspector: Request Inspector server returned ${res.statusCode} while trying to save event`);
     }
-  }, 'is_request_inspector_call');
-
-  req.on('error', (err: Error | string) => {
-    console.warn(`Request Inspector: error saving event to the server: ${err}`);
   });
-
-  req.write(data);
-  req.end();
 }

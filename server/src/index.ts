@@ -24,7 +24,7 @@ SOFTWARE.
 
 import * as express from 'express';
 import { json } from 'body-parser';
-import { IMeasurementEvent } from './common/common';
+import { IMeasurementEvent, IService } from './common/common';
 import { compile } from 'handlebars';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -41,6 +41,7 @@ interface IRequestEntry {
 }
 
 const requests: IRequestEntry[] = [];
+const services: IService[] = [];
 
 function percent(min: number, value: number): number {
   return Math.max(min, Math.round(100 * value));
@@ -55,35 +56,47 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
   app.get('/', (req, res) => {
     const template = compile(readFileSync(join(__dirname, '..', 'templates', 'index.handlebars'), 'utf-8'));
 
-    res.send(template({ requests: requests.map((request) => {
-      const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
-      const requreDurationValid =
-        typeof request.events[0].start === 'number' &&
-        typeof request.events[0].end === 'number';
-      return {
-        ...request,
-        duration: requestDuration,
-        durationValid: requreDurationValid,
-        events: request.events.map((event) => {
-          return {
-            ...event,
-            duration: event.end - event.start,
-            durationValid: typeof event.end === 'number',
-            left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0,
-            width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0,
-          };
-        })
-      };
-    }) }));
+    res.send(template({
+      requests: requests.map((request) => {
+        const requestDuration = Math.max(0, (request.events[0].end - request.events[0].start));
+        const requreDurationValid =
+          typeof request.events[0].start === 'number' &&
+          typeof request.events[0].end === 'number';
+        return {
+          ...request,
+          duration: requestDuration,
+          durationValid: requreDurationValid,
+          events: request.events.map((event) => {
+            return {
+              ...event,
+              duration: event.end - event.start,
+              durationValid: typeof event.end === 'number',
+              left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0,
+              width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0,
+            };
+          })
+        };
+      })
+    }));
   });
 
   app.get('/api/requests', (req, res) => {
-    res.send(requests);
+    res.send({
+      services,
+      requests
+    });
+  });
+
+  app.post('/api/register', (req, res) => {
+    const service: IService = req.body;
+    console.log(`Registering service "${service.serviceName}"`);
+    services.push(service);
+    res.send('ok');
   });
 
   app.post('/api/events', (req, res) => {
     const event: IMeasurementEvent = req.body;
-    console.log(`Received event ${event.name} (${event.id}) for request ${event.requestId}`);
+    console.log(`Received event ${event.type}:${event.eventId} from ${event.serviceId} for request ${event.requestId}`);
     let requestEntry: IRequestEntry | undefined;
     for (const request of requests) {
       if (request.requestId === event.requestId) {
@@ -102,7 +115,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
     }
     let existingEventUpdated = false;
     for (let i = 0; i < requestEntry.events.length; i++) {
-      if (requestEntry.events[i].id === event.id) {
+      if (requestEntry.events[i].eventId === event.eventId) {
         requestEntry.events[i] = event;
         existingEventUpdated = true;
         break;

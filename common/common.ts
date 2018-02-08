@@ -23,13 +23,18 @@ SOFTWARE.
 */
 
 export interface IMeasurementEvent {
-  serviceName: string;
-  id: string;
+  eventId: string;
   requestId: string;
-  name: string;
+  serviceId: string;
+  type: string;
   start: number;
   end: number;
   details: { [ key: string ]: any };
+}
+
+export interface IService {
+  serviceId: string;
+  serviceName: string;
 }
 
 export const EVENT_NAMES = {

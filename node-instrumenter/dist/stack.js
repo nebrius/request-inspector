@@ -31,7 +31,8 @@ const http = require("http");
 const https = require("https");
 const relationships = {};
 const requests = {};
-const rootContextPath = getContextPath();
+let isInitialized = false;
+let rootContextPath;
 function init(cb) {
     const asyncHook = async_hooks_1.createHook({
         init: (executionAsyncId, type, triggerAsyncId, resource) => {
@@ -109,10 +110,15 @@ function init(cb) {
         }
         return req;
     };
+    isInitialized = true;
+    rootContextPath = getContextPath();
     setImmediate(cb);
 }
 exports.init = init;
 function registerRequestId(requestId) {
+    if (!isInitialized) {
+        throw new Error('Cannot call "registerRequestId" until the event system is initialized');
+    }
     const contextPath = getContextPath();
     if (rootContextPath === contextPath) {
         throw new Error('Attempted to register a request in the root context');
@@ -121,6 +127,9 @@ function registerRequestId(requestId) {
 }
 exports.registerRequestId = registerRequestId;
 function getCurrentRequestId() {
+    if (!isInitialized) {
+        throw new Error('Cannot call "getCurrentRequestId" until the event system is initialized');
+    }
     const contextPath = getContextPath();
     for (const requestId in requests) {
         if (!requests.hasOwnProperty(requestId)) {
@@ -134,6 +143,9 @@ function getCurrentRequestId() {
 }
 exports.getCurrentRequestId = getCurrentRequestId;
 function getContextPath() {
+    if (!isInitialized) {
+        throw new Error('Cannot call "getContextPath" until the event system is initialized');
+    }
     const executionAsyncId = async_hooks_1.executionAsyncId();
     function findRoot(execId) {
         if (!relationships.hasOwnProperty(execId)) {

@@ -17,15 +17,15 @@
           <p>Events:</p>
           <div class="events-container">
             <div class="event" >
-              <div class="name header">Event Name</div>
+              <div class="name header">Type</div>
               <div class="service header">Service</div>
               <div class="duration header">Length</div>
               <div class="timeline header">Timeline</div>
             </div>
           {{#each this.events}}
             <div class="event" title="Duration: {{this.duration}}ms&#013;{{#each this.details}}&#013;{{@key}}: {{this}}{{/each}}" >
-              <div class="name">{{this.name}}</div>
-              <div class="service">{{this.serviceName}}</div>
+              <div class="name">{{this.type}}</div>
+              <div class="service">{{this.serviceId}}</div>
               {{#if this.durationValid}}
               <div class="duration">{{this.duration}}ms</div>
               {{else}}

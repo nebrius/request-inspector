@@ -26,6 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const stack_1 = require("./stack");
 const messaging_1 = require("./messaging");
 const event_1 = require("./event");
+const async_1 = require("async");
 var event_2 = require("./event");
 exports.isInRequestContext = event_2.isInRequestContext;
 exports.begin = event_2.begin;
@@ -49,9 +50,11 @@ function init(options, cb) {
     if (typeof serviceName !== 'string') {
         throw new Error('"serviceName" option must be a string');
     }
-    messaging_1.setServerConnection(serverHostname, serverPort);
-    event_1.setServiceName(serviceName);
-    stack_1.init(cb);
+    async_1.parallel([
+        (next) => stack_1.init(next),
+        (next) => messaging_1.init(serverHostname, serverPort, serviceName, next),
+        (next) => event_1.init(next)
+    ], cb);
 }
 exports.init = init;
 //# sourceMappingURL=index.js.map

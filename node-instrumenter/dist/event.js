@@ -26,17 +26,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const stack_1 = require("./stack");
 const messaging_1 = require("./messaging");
-let serviceName;
-function setServiceName(newName) {
-    serviceName = newName;
+function init(cb) {
+    // Nothing to do, yet?
+    setImmediate(cb);
 }
-exports.setServiceName = setServiceName;
+exports.init = init;
 function isInRequestContext() {
     return !!stack_1.getCurrentRequestId();
 }
 exports.isInRequestContext = isInRequestContext;
-function begin(name, details = {}) {
-    if (typeof name !== 'string') {
+function begin(type, details = {}) {
+    if (typeof type !== 'string') {
         throw new Error('"name" must be a string');
     }
     if (!isInRequestContext()) {
@@ -48,10 +48,10 @@ function begin(name, details = {}) {
             'This is a bug in Request Inspector, please report it to the author.');
     }
     const newEntry = {
-        serviceName,
-        id: uuid_1.v4(),
+        eventId: uuid_1.v4(),
+        serviceId: messaging_1.getServiceId(),
         requestId,
-        name,
+        type,
         start: Date.now(),
         end: NaN,
         details
@@ -62,7 +62,7 @@ function begin(name, details = {}) {
 exports.begin = begin;
 function end(event, details = {}) {
     if (!isNaN(event.end)) {
-        throw new Error(`"end" called twice for ${event.name}`);
+        throw new Error(`"end" called twice for ${event.type}:${event.eventId}`);
     }
     event.end = Date.now();
     event.details = Object.assign({}, event.details, details);
