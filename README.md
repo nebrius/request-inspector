@@ -67,7 +67,15 @@ instrumenter.init({
 });
 ```
 
-Then instrument your browser application by including the script:
+Then instrument your browser application by initializing the module:
+
+```JavaScript
+window.requestInspector.init({
+  serverHostname: 'localhost',
+  serverPort: 7176,
+  serviceName: 'template'
+})
+```
 
 Then, start the server:
 

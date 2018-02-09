@@ -132,7 +132,7 @@ function sendEvent(event: IMeasurementEvent): void {
   req.send(JSON.stringify(event));
 }
 
-function begin(requestId: string, type: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
+export function begin(requestId: string, type: string, details: { [ key: string ]: any } = {}): IMeasurementEvent {
   if (!isInitialized) {
     throw new Error('"begin" was called before Request Inspector was finished initializing');
   }
@@ -156,7 +156,7 @@ function begin(requestId: string, type: string, details: { [ key: string ]: any 
   return newEntry;
 }
 
-function end(event: IMeasurementEvent, details: { [ key: string ]: any } = {}): void {
+export function end(event: IMeasurementEvent, details: { [ key: string ]: any } = {}): void {
   if (!isInitialized) {
     throw new Error('"begin" was called before Request Inspector was finished initializing');
   }

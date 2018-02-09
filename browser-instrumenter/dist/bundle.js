@@ -292,6 +292,7 @@ function begin(requestId, type, details) {
     sendEvent(newEntry);
     return newEntry;
 }
+exports.begin = begin;
 function end(event, details) {
     if (details === void 0) { details = {}; }
     if (!isInitialized) {
@@ -304,6 +305,7 @@ function end(event, details) {
     event.details = __assign({}, event.details, details);
     sendEvent(event);
 }
+exports.end = end;
 window.requestInspector = {
     init: init,
     begin: begin,

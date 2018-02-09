@@ -67,7 +67,11 @@ instrumenter.init({
 });
 ```
 
-Then instrument your browser application by including the script:
+Then instrument your browser application by initializing the module:
+
+```JavaScript
+
+```
 
 Then, start the server:
 
