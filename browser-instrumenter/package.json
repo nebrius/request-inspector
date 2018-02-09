@@ -1,6 +1,6 @@
 {
   "name": "@request-inspector/browser-instrumenter",
-  "version": "1.0.0-beta1",
+  "version": "1.0.0-beta2",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "main": "lib/index.js",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@request-inspector/node-instrumenter",
-  "version": "1.0.0-beta3",
+  "version": "1.0.0-beta4",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "main": "dist/index.js",
   "types": "./declarations/index.d.ts",
