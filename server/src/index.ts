@@ -68,7 +68,7 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
           }
         }
         if (!rootEvent) {
-          console.warn(`Internall Error: Could not find the root event for request ${request.requestId}`);
+          console.warn(`Internal Error: Could not find the root event for request ${request.requestId}`);
           return;
         }
         const requestDuration = Math.max(0, (rootEvent.end - rootEvent.start));
@@ -81,6 +81,11 @@ export function start({ port }: IOptions, cb: () => void): express.Express {
           duration: requestDuration,
           durationValid: requreDurationValid,
           events: request.events.map((event) => {
+            // This isn't necessary, but TypeScript is getting a little confused and things it could be undefined still
+            if (!rootEvent) {
+              console.warn(`Internal Error: Could not find the root event for request ${request.requestId}`);
+              return;
+            }
             return {
               ...event,
               serviceName: services[event.serviceId],

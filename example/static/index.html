@@ -9,6 +9,14 @@ function loadContent() {
     const iframe = document.getElementById('contentFrame');
     iframe.srcdoc = content;
   });
+  // const req = new XMLHttpRequest();
+  // req.open('GET', '/api/content');
+  // req.addEventListener('load', () => {
+  //   const iframe = document.getElementById('contentFrame');
+  //   iframe.srcdoc = req.responseText;
+  // });
+  // req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  // req.send(JSON.stringify(event));
 }
 </script>
 <script src="/request_inspector.js"></script>

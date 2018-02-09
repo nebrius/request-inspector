@@ -35,6 +35,7 @@ export interface IOptions {
 
 let options: IOptions;
 let isInitialized = false;
+let oldXMLHttpRequest: any;
 
 export function init(newOptions: IOptions, cb?: (err: Error | undefined) => void): void {
 
@@ -64,24 +65,54 @@ export function init(newOptions: IOptions, cb?: (err: Error | undefined) => void
           }
         };
       }
-      const beginEvent = begin(requestId, EVENT_NAMES.BROWSER_HTTP_CLIENT_REQUEST, {
+      const fetchEvent = begin(requestId, EVENT_NAMES.BROWSER_HTTP_FETCH_REQUEST, {
         url: typeof input === 'string' ? input : input.url
       });
       const req = oldFetch(input, fetchInit);
       req.then((response) => {
-        end(beginEvent);
+        end(fetchEvent);
         return response;
       });
       return req;
     };
   }
 
+  // Patch XHR
+  oldXMLHttpRequest = (window as any).XMLHttpRequest;
+  (window as any).XMLHttpRequest = function XMLHttpRequest() {
+    const req: XMLHttpRequest = new oldXMLHttpRequest(arguments);
+    const requestId = uuid();
+    let xhrEvent: IMeasurementEvent;
+    req.addEventListener('load', () => {
+      end(xhrEvent);
+    });
+    let method: string;
+    let url: string;
+    const oldOpen = req.open;
+    req.open = function open(newMethod, newUrl) {
+      method = newMethod;
+      url = newUrl;
+      const result = oldOpen.apply(this, arguments);
+      req.setRequestHeader(HEADER_NAME, requestId);
+      return result;
+    };
+    const oldSend = req.send;
+    req.send = function send() {
+      xhrEvent = begin(requestId, EVENT_NAMES.BROWSER_HTTP_XHR_REQUEST, {
+        url,
+        method
+      });
+      return oldSend.apply(this, arguments);
+    };
+    return req;
+  };
+
   // Register with the server
   const service: IService = {
     serviceId,
     serviceName: 'client'
   };
-  const registerReq = new XMLHttpRequest();
+  const registerReq = new oldXMLHttpRequest();
   registerReq.open('POST', `http://${options.serverHostname}:${options.serverPort}/api/register`);
   registerReq.addEventListener('load', () => {
     isInitialized = true;
@@ -89,13 +120,13 @@ export function init(newOptions: IOptions, cb?: (err: Error | undefined) => void
       cb(undefined);
     }
   });
-  registerReq.addEventListener('error', (e) => cb && cb(e.error));
+  registerReq.addEventListener('error', (e: ErrorEvent) => cb && cb(e.error));
   registerReq.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
   registerReq.send(JSON.stringify(service));
 }
 
 function sendEvent(event: IMeasurementEvent): void {
-  const req = new XMLHttpRequest();
+  const req = new oldXMLHttpRequest();
   req.open('POST', `http://${options.serverHostname}:${options.serverPort}/api/events`);
   req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
   req.send(JSON.stringify(event));

@@ -51,13 +51,18 @@ function start({ port }, cb) {
                     }
                 }
                 if (!rootEvent) {
-                    console.warn(`Internall Error: Could not find the root event for request ${request.requestId}`);
+                    console.warn(`Internal Error: Could not find the root event for request ${request.requestId}`);
                     return;
                 }
                 const requestDuration = Math.max(0, (rootEvent.end - rootEvent.start));
                 const requreDurationValid = typeof rootEvent.start === 'number' &&
                     typeof rootEvent.end === 'number';
                 return Object.assign({}, request, { start: (new Date(rootEvent.start)).toString(), duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
+                        // This isn't necessary, but TypeScript is getting a little confused and things it could be undefined still
+                        if (!rootEvent) {
+                            console.warn(`Internal Error: Could not find the root event for request ${request.requestId}`);
+                            return;
+                        }
                         return Object.assign({}, event, { serviceName: services[event.serviceId], duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - rootEvent.start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
                     }) });
             })

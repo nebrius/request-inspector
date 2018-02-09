@@ -173,6 +173,7 @@ var uuid_1 = __webpack_require__(4);
 var serviceId = uuid_1.v4();
 var options;
 var isInitialized = false;
+var oldXMLHttpRequest;
 function init(newOptions, cb) {
     options = newOptions;
     // Patch fetch
@@ -202,24 +203,53 @@ function init(newOptions, cb) {
                         _b)
                 };
             }
-            var beginEvent = begin(requestId, common_1.EVENT_NAMES.BROWSER_HTTP_CLIENT_REQUEST, {
+            var fetchEvent = begin(requestId, common_1.EVENT_NAMES.BROWSER_HTTP_FETCH_REQUEST, {
                 url: typeof input === 'string' ? input : input.url
             });
             var req = oldFetch_1(input, fetchInit);
             req.then(function (response) {
-                end(beginEvent);
+                end(fetchEvent);
                 return response;
             });
             return req;
             var _a, _b;
         };
     }
+    // Patch XHR
+    oldXMLHttpRequest = window.XMLHttpRequest;
+    window.XMLHttpRequest = function XMLHttpRequest() {
+        var req = new oldXMLHttpRequest(arguments);
+        var requestId = uuid_1.v4();
+        var xhrEvent;
+        req.addEventListener('load', function () {
+            end(xhrEvent);
+        });
+        var method;
+        var url;
+        var oldOpen = req.open;
+        req.open = function open(newMethod, newUrl) {
+            method = newMethod;
+            url = newUrl;
+            var result = oldOpen.apply(this, arguments);
+            req.setRequestHeader(common_1.HEADER_NAME, requestId);
+            return result;
+        };
+        var oldSend = req.send;
+        req.send = function send() {
+            xhrEvent = begin(requestId, common_1.EVENT_NAMES.BROWSER_HTTP_XHR_REQUEST, {
+                url: url,
+                method: method
+            });
+            return oldSend.apply(this, arguments);
+        };
+        return req;
+    };
     // Register with the server
     var service = {
         serviceId: serviceId,
         serviceName: 'client'
     };
-    var registerReq = new XMLHttpRequest();
+    var registerReq = new oldXMLHttpRequest();
     registerReq.open('POST', "http://" + options.serverHostname + ":" + options.serverPort + "/api/register");
     registerReq.addEventListener('load', function () {
         isInitialized = true;
@@ -233,7 +263,7 @@ function init(newOptions, cb) {
 }
 exports.init = init;
 function sendEvent(event) {
-    var req = new XMLHttpRequest();
+    var req = new oldXMLHttpRequest();
     req.open('POST', "http://" + options.serverHostname + ":" + options.serverPort + "/api/events");
     req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
     req.send(JSON.stringify(event));
@@ -313,7 +343,8 @@ SOFTWARE.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVENT_NAMES = {
     NODE_HTTP_SERVER_REQUEST: 'builtin:node:server-request',
-    BROWSER_HTTP_CLIENT_REQUEST: 'builtin:browser:client-request'
+    BROWSER_HTTP_XHR_REQUEST: 'builtin:browser:xhr-request',
+    BROWSER_HTTP_FETCH_REQUEST: 'builtin:browser:fetch-request'
 };
 exports.HEADER_NAME = 'x-request-inspector-request-ID';
 
