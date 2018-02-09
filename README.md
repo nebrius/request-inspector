@@ -24,8 +24,8 @@ Be sure to [check out the example](./example).
 
 ## Installation
 
-Request Inspector is currently split into two packages: a Node.js instrumenter
-and the server. The instrumenter runs inside of your Node.js server, which collects
+Request Inspector is currently split into three packages: a brwoser instrumenter, a Node.js instrumenter,
+and a server. The instrumenters run inside of your web app and Node.js server, which collect
 data and sends it to the server.
 
 Start by installing the server globally:
@@ -70,11 +70,30 @@ instrumenter.init({
 Then instrument your browser application by initializing the module:
 
 ```JavaScript
+const instrumenter = require('@request-inspector/browser-instrumenter');
+instrumenter.init({
+  serverHostname: 'localhost',
+  serverPort: 7176,
+  serviceName: 'browser',
+}, () => {
+
+  // Your app code here
+
+});
+```
+
+Alternatively, if you are not using a build system, you can do:
+
+```JavaScript
 window.requestInspector.init({
   serverHostname: 'localhost',
   serverPort: 7176,
-  serviceName: 'template'
-})
+  serviceName: 'browser',
+}, () => {
+
+  // Your app code here
+
+});
 ```
 
 Then, start the server:
@@ -86,8 +105,9 @@ request-inspector [-p PORT]
 Note: it is recommended that you run this initialization code _before_ you require/import
 any other code.
 
-This code will _automatically_ instrument all inbound HTTP requests for you. You can also
-add more data points to get a more fine-grained look at what your application is doing:
+Request Instrumenter will _automatically_ instrument all inbound HTTP requests for
+you. You can also add more data points in your Node.js server to get a more
+fine-grained look at what your application is doing (browser support pending):
 
 ```JavaScript
 const templateReadEvent = instrumenter.begin('file-read');
