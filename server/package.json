@@ -1,6 +1,6 @@
 {
   "name": "@request-inspector/server",
-  "version": "1.0.0-beta3",
+  "version": "1.0.0-beta4",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "bin": {
     "request-inspector": "bin/cli.js"

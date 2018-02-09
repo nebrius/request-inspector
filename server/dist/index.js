@@ -55,10 +55,10 @@ function start({ port }, cb) {
                     return;
                 }
                 const requestDuration = Math.max(0, (rootEvent.end - rootEvent.start));
-                const requreDurationValid = typeof request.events[0].start === 'number' &&
-                    typeof request.events[0].end === 'number';
-                return Object.assign({}, request, { start: (new Date(request.events[0].start)).toString(), duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
-                        return Object.assign({}, event, { serviceName: services[event.serviceId], duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - request.events[0].start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
+                const requreDurationValid = typeof rootEvent.start === 'number' &&
+                    typeof rootEvent.end === 'number';
+                return Object.assign({}, request, { start: (new Date(rootEvent.start)).toString(), duration: requestDuration, durationValid: requreDurationValid, events: request.events.map((event) => {
+                        return Object.assign({}, event, { serviceName: services[event.serviceId], duration: event.end - event.start, durationValid: typeof event.end === 'number', left: requreDurationValid ? percent(0, (event.start - rootEvent.start) / requestDuration) : 0, width: requreDurationValid ? percent(1, (event.end - event.start) / requestDuration) : 0 });
                     }) });
             })
         }));

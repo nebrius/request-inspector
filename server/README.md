@@ -11,8 +11,8 @@ calls to other servers. How does one correlate timing information across all of
 these microservices? Enter Request Inspector.
 
 Request inspector works by adding a header to all HTTP requests that is then used
-to track the request through multiple systems. Request inspector also uses the new
-Async Hooks API in Node.js to track that request through asynchronous calls locally.
+to track the request through multiple systems. Request inspector also uses continuation
+local storage in Node.js to track that request through asynchronous calls locally.
 This data is then sent to a special Request Inspector server which aggregates and
 correlates all of this data.
 
@@ -34,18 +34,25 @@ Start by installing the server globally:
 npm install -g @request-inspector/server
 ```
 
-Then install the instrumenter in your project:
+Then install the Node.js instrumenter in your server project:
 
 ```bash
 npm install @request-inspector/node-instrumenter
 ```
 
-**Warning:** the `@request-inspector/node-instrumenter` package _requires_ Node.js
-8.1.0 or newer to function, because older versions of Node.js don't support [async_hooks](https://nodejs.org/api/async_hooks.html).
+Finally, install the browser instrumenter in your client project and use [webpack](webpack.js.org),
+[browserfiy](http://browserify.org/) or similar to bundle it into your application:
+
+```bash
+npm install @request-inspector/browser-instrumenter
+```
+
+Alternatively, you can [download the browser instrumenter as a single file](https://raw.githubusercontent.com/nebrius/request-inspector/master/browser-instrumenter/dist/bundle.js)
+and add it with a script tag, e.g. `<script src="/lib/request_inspector.js"></script>`.
 
 ## Usage
 
-To instrument your code in Node.js, require/import the module and initialize it:
+Start by instrumenting your Node.js application by requiring/importing the module and initializing it:
 
 ```JavaScript
 const instrumenter = require('@request-inspector/node-instrumenter');
@@ -59,6 +66,8 @@ instrumenter.init({
 
 });
 ```
+
+Then instrument your browser application by including the script:
 
 Then, start the server:
 

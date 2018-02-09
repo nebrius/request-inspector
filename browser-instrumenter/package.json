@@ -1,13 +1,13 @@
 {
   "name": "@request-inspector/browser-instrumenter",
-  "version": "1.0.0",
+  "version": "1.0.0-beta1",
   "description": "A request timing diagnostic tool for Web and Node.js applications",
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tslint 'src/**/*.ts' 'src/**/*.tsx'",
     "prebuild": "npm run lint",
-    "build": "rimraf dist && webpack",
+    "build": "rimraf dist && webpack && cpy ../README.md .",
     "postbuild": "echo done"
   },
   "repository": {
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/uuid": "^3.4.3",
     "awesome-typescript-loader": "^3.4.1",
+    "cpy-cli": "^1.0.1",
     "rimraf": "^2.6.2",
     "source-map-loader": "^0.2.3",
     "tslint": "^5.9.1",
