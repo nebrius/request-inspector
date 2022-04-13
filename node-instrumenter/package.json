@@ -36,7 +36,7 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "async": "^2.6.3",
+    "async": "^3.2.2",
     "continuation-local-storage": "^3.2.1",
     "request": "^2.88.0",
     "uuid": "^3.3.3"
