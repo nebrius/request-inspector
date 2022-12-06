@@ -18,8 +18,8 @@
   "homepage": "https://github.com/nebrius/request-inspector#readme",
   "dependencies": {
     "@request-inspector/node-instrumenter": "^1.0.0-beta1",
-    "body-parser": "^1.18.2",
-    "express": "^4.16.2",
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
     "handlebars": "^4.7.7",
     "request": "^2.83.0"
   }
