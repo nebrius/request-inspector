@@ -19,7 +19,7 @@
   "dependencies": {
     "@request-inspector/node-instrumenter": "^1.0.0-beta1",
     "body-parser": "^1.18.2",
-    "express": "^4.16.2",
+    "express": "^4.17.3",
     "handlebars": "^4.7.7",
     "request": "^2.83.0"
   }
